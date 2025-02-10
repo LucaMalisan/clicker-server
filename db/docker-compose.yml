@@ -8,7 +8,6 @@ services:
       POSTGRES_DB: clicker_db
     volumes:
       - ./postgres/data:/var/lib/postgresql/data
-      - ./script.sql:/docker-entrypoint-initdb.d/script.sql # wir initialisieren die Datenbank mit dem SQL-Script
     ports: #Postgres läuft intern auf Port 5432 und soll von aussen auf localhost:5432 erreichbar sein
       - "5432:5432"
     networks:
