@@ -10,8 +10,3 @@ services:
       - ./postgres/data:/var/lib/postgresql/data
     ports: #Postgres läuft intern auf Port 5432 und soll von aussen auf localhost:5432 erreichbar sein
       - "5432:5432"
-    networks:
-      - internal-network
-networks:
-  internal-network: # eigenes Netzwerk für Container
-    driver: bridge
