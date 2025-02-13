@@ -44,10 +44,10 @@ jobs:
         with:
           dir: 'file://migration'
           dir-name: 'clicker_db'
-          dev-url: 'postgres://postgres:pass@localhost:5432/dev?sslmode=disable'
+          dev-url: 'postgres://postgres:admin@localhost:5432/clicker_db?sslmode=disable'
       - uses: ariga/atlas-action/migrate/push@v1
         if: github.ref == 'refs/heads/main'
         with:
           dir: 'file://migration'
           dir-name: 'clicker_db'
-          dev-url: 'postgres://postgres:pass@localhost:5432/dev?sslmode=disable'
+          dev-url: 'postgres://postgres:admin@localhost:5432/clicker_db?sslmode=disable'
