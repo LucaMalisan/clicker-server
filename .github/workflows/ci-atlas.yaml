@@ -5,10 +5,10 @@ on:
       - main
     paths:
       - .github/workflows/ci-atlas.yaml
-      - 'db/migration/*'
+      - 'migration/*'
   pull_request:
     paths:
-      - 'db/migration/*'
+      - 'migration/*'
 # Permissions to write comments on the pull request.
 permissions:
   contents: read
@@ -42,12 +42,12 @@ jobs:
           cloud-token: ${{ secrets.ATLAS_CLOUD_TOKEN_RX3B70 }}
       - uses: ariga/atlas-action/migrate/lint@v1
         with:
-          dir: 'file://db/migration'
+          dir: 'file://migration'
           dir-name: 'clicker_db'
           dev-url: 'postgres://postgres:admin@localhost:5432/clicker_db?sslmode=disable'
       - uses: ariga/atlas-action/migrate/push@v1
         if: github.ref == 'refs/heads/main'
         with:
-          dir: 'file://db/migration'
+          dir: 'file://migration'
           dir-name: 'clicker_db'
           dev-url: 'postgres://postgres:admin@localhost:5432/clicker_db?sslmode=disable'
