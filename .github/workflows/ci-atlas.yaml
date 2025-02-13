@@ -4,7 +4,7 @@ on:
   # change this to your root branch.
   push:
     branches:
-      - master
+      - main
 jobs:
   push:
     runs-on: ubuntu-latest
