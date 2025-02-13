@@ -20,8 +20,8 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: dev
-          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: clicker_db
+          POSTGRES_PASSWORD: admin
         ports:
           - 5432:5432
         options: >-

@@ -11,7 +11,7 @@ export class AppService {
 
   getHello(): string {
     const test = new TestEntity();
-    test.someText = 'something lol';
+    test.someText = new Date().toISOString();
     this.repo.save(test).catch((e) => console.log(e));
     return 'Hello World!';
   }

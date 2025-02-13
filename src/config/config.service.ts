@@ -45,7 +45,7 @@ class ConfigService {
 
       synchronize: true,
 
-      entities: [__dirname + '/../models/*.entity{.ts,.js}'], // Relativer Pfad zu src/models
+      entities: [__dirname + '/../**/*.entity.js'],
 
       ssl: this.isProduction(),
     };
