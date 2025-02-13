@@ -5,10 +5,10 @@ on:
       - main
     paths:
       - .github/workflows/ci-atlas.yaml
-      - 'migration/*'
+      - 'db/migration/*'
   pull_request:
     paths:
-      - 'migration/*'
+      - 'db/migration/*'
 # Permissions to write comments on the pull request.
 permissions:
   contents: read
