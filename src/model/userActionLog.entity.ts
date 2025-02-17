@@ -19,8 +19,8 @@ import { Effect } from './effect.entity';
  * A log of all actions is in table "userAction"
  */
 
-@Entity({ name: 'user_effect' })
-export class UserEffect {
+@Entity({ name: 'user_action_log' })
+export class UserActionLog {
 
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
@@ -29,9 +29,11 @@ export class UserEffect {
   @JoinColumn({ name: 'game_session' })
   userGameSession: UserGameSession;
 
-  @ManyToOne(() => Effect, effect => effect.name)
-  @JoinColumn({ name: 'effect' })
-  effect: Effect;
+  @Column({ type: 'varchar' })
+  action: string; //purchases, activates, attacked ...
+
+  @Column({ type: 'real' })
+  virusDifference: number; //which difference of virus did the action cause
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
