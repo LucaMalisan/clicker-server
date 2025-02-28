@@ -21,13 +21,13 @@ export class AuthService {
     const user = await this.usersService.findOne(username);
 
     if (!user) {
-      throw new NotFoundException('This user doesn\'t exist');
+      throw new Error('This user doesn\'t exist');
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      throw new UnauthorizedException('Password is not correct');
+      throw new Error('Password is not correct');
     }
 
     const payload = { sub: user.uuid, username: user.userName };
@@ -40,14 +40,14 @@ export class AuthService {
   async register(username: string, password: string): Promise<any> {
 
     if (!username || !password) {
-      throw new BadRequestException('Username or password can\'t be empty');
+      throw new Error('Username or password can\'t be empty');
     }
 
     let user = await this.usersService.findOne(username);
 
     //user shouldn't exist yet
     if (user) {
-      throw new BadRequestException('User with this e-mail already exists');
+      throw new Error('User with this e-mail already exists');
     }
 
     user = new User();
