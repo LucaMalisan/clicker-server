@@ -11,7 +11,7 @@ import { AuthGateway } from './auth.gateway';
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '60s' },
+      signOptions: { expiresIn: '900s' }, //15 minutes until expiration
     }),
   ],
   providers: [AuthService, AuthGateway],

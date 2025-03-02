@@ -9,14 +9,15 @@ import { Variables } from '../static/variables';
 export class ChatGateway {
 
   /**
-   * Server receives a chat message and sends it back to all clients
+   * Server receives a chat message and sends it back to all authenticated clients
    * @param data - {message: '...', user: '...'}
    */
 
   @SubscribeMessage('chat-message')
-  handleChatMessage(@MessageBody() data: string): void {
+  handleChatMessage(@MessageBody() data: any): void {
     //send message to all registered clients
     for (let sk of Variables.sockets) {
+      console.log(data)
       sk.emit('chat-message', data);
     }
   }

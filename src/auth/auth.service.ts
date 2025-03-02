@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -32,9 +27,10 @@ export class AuthService {
 
     const payload = { sub: user.uuid, username: user.userName };
 
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-    };
+    return JSON.stringify({
+      jwt: await this.jwtService.signAsync(payload, { expiresIn: '1m' }),
+      refreshToken: await this.jwtService.signAsync(payload, { expiresIn: '7d' }),
+    });
   }
 
   async register(username: string, password: string): Promise<any> {
@@ -54,5 +50,11 @@ export class AuthService {
     user.userName = username;
     user.password = await bcrypt.hash(password, 12);
     return this.usersService.save(user);
+  }
+
+  async refreshToken(refreshToken: string) {
+    const payload = this.jwtService.verify(refreshToken);
+    const newPayload = { username: payload.username, sub: payload.sub };
+    return this.jwtService.sign(newPayload, { expiresIn: '1m' });
   }
 }
