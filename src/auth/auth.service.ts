@@ -28,7 +28,7 @@ export class AuthService {
     const payload = { sub: user.uuid, username: user.userName };
 
     return JSON.stringify({
-      jwt: await this.jwtService.signAsync(payload, { expiresIn: '1m' }),
+      jwt: await this.jwtService.signAsync(payload, { expiresIn: '10m' }),
       refreshToken: await this.jwtService.signAsync(payload, { expiresIn: '7d' }),
     });
   }
@@ -55,6 +55,6 @@ export class AuthService {
   async refreshToken(refreshToken: string) {
     const payload = this.jwtService.verify(refreshToken);
     const newPayload = { username: payload.username, sub: payload.sub };
-    return this.jwtService.sign(newPayload, { expiresIn: '1m' });
+    return this.jwtService.sign(newPayload, { expiresIn: '10m' });
   }
 }
