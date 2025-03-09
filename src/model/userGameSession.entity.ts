@@ -3,9 +3,8 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  CreateDateColumn,
   ManyToOne,
-  JoinColumn
+  JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { GameSession } from './gameSession.entity';
@@ -21,13 +20,19 @@ export class UserGameSession {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
-  @ManyToOne(() => User, user => user.uuid)
+  @ManyToOne(() => User, user => user.uuid, { eager: true })
   @JoinColumn({ name: 'user' })
-  user: User;
+  user?: User;
 
-  @ManyToOne(() => GameSession, gameSession => gameSession.uuid)
+  @Column({ name: 'user' })
+  userUuid?: string;
+
+  @ManyToOne(() => GameSession, gameSession => gameSession.uuid, { eager: true })
   @JoinColumn({ name: 'game_session' })
   gameSession: GameSession;
+
+  @Column({ name: 'game_session' })
+  gameSessionUuid: string;
 
   @Column({ type: 'int' })
   points: number;

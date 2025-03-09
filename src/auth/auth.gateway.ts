@@ -43,9 +43,10 @@ export class AuthGateway {
 
     try {
       let jwt = await this.authService.signIn(registerDto.userName, registerDto.password);
+
       client.emit('login-successful', jwt);
     } catch (err) {
-      console.log(err);
+      console.log(`Caught error: ${err}`);
       return err.message;
     }
   }

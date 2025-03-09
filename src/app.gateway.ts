@@ -6,6 +6,9 @@ import {
 import { Socket } from 'socket.io';
 import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { AuthService } from './auth/auth.service';
+import { Variables } from './static/variables';
+import { UsersService } from './users/users.service';
+import { User } from './model/user.entity';
 
 interface Tokens {
   jwt: string,
@@ -21,7 +24,8 @@ interface Response {
 export class AppGateway {
 
   constructor(private jwtService: JwtService,
-              private authService: AuthService) {
+              private authService: AuthService,
+              private usersService: UsersService) {
   }
 
   /**
@@ -38,16 +42,28 @@ export class AppGateway {
     try {
       this.jwtService.verify(jwt);
     } catch (err) {
-
-      if (err instanceof TokenExpiredError) {
-        console.log('generate new token');
-        jwt = await this.authService.refreshToken(json.refreshToken);
-      } else {
-        console.error(err);
+      try {
+        if (err instanceof TokenExpiredError) {
+          console.log('generate new token');
+          jwt = await this.authService.refreshToken(json.refreshToken);
+        } else {
+          throw new Error(err);
+        }
+      } catch (err) {
+        console.error(`Caught error: ${err}`);
         let response: Response = { success: false, jwt: jwt };
         return JSON.stringify(response);
       }
     }
+
+    let decoded: any = this.jwtService.decode(jwt);
+    await this.usersService.findOne(decoded.username)
+      .then((user: User) => {
+        console.log(`register socket of user with uuid ${user.uuid}`);
+        Variables.sockets.set(client, user.uuid);
+      })
+      .catch(err => console.error(`Caught error: ${err}`));
+
 
     let response: Response = { success: true, jwt: jwt };
     return JSON.stringify(response);

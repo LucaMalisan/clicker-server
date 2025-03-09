@@ -19,13 +19,19 @@ export class ChatMessage {
   @Column({ type: 'text'})
   content: string;
 
-  @ManyToOne(() => User, user => user.uuid)
+  @ManyToOne(() => User, user => user.uuid, { eager: true })
   @JoinColumn({ name: 'written_by' })
-  writtenBy: User;
+  writtenBy?: User;
 
-  @ManyToOne(() => GameSession, gameSession => gameSession.uuid)
+  @Column({ name: 'written_by'})
+  writtenByUuid?: string;
+
+  @ManyToOne(() => GameSession, gameSession => gameSession.uuid, { eager: true })
   @JoinColumn({ name: 'game_session' })
   gameSession: GameSession;
+
+  @Column({ name: 'game_session'})
+  gameSessionUuid: string;
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

@@ -25,7 +25,7 @@ export class UserEffect {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
-  @ManyToOne(() => Effect, effect => effect.name)
+  @ManyToOne(() => Effect, effect => effect.name, { eager: true })
   @JoinColumn({ name: 'effect' })
   effect: Effect;
 
