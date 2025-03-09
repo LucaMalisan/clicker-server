@@ -21,11 +21,17 @@ export class ChatMessage {
 
   @ManyToOne(() => User, user => user.uuid)
   @JoinColumn({ name: 'written_by' })
-  writtenBy: User;
+  writtenBy?: User;
+
+  @Column({ name: 'written_by'})
+  writtenByUuid?: string;
 
   @ManyToOne(() => GameSession, gameSession => gameSession.uuid)
   @JoinColumn({ name: 'game_session' })
-  gameSession: GameSession;
+  gameSession?: GameSession;
+
+  @Column({ name: 'game_session'})
+  gameSessionUuid?: string;
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

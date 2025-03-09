@@ -5,7 +5,7 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   ManyToOne,
-  JoinColumn
+  JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { GameSession } from './gameSession.entity';
@@ -23,7 +23,10 @@ export class UserGameSession {
 
   @ManyToOne(() => User, user => user.uuid)
   @JoinColumn({ name: 'user' })
-  user: User;
+  user?: User;
+
+  @Column({ name: 'user' })
+  userUuid?: string;
 
   @ManyToOne(() => GameSession, gameSession => gameSession.uuid)
   @JoinColumn({ name: 'game_session' })

@@ -6,6 +6,7 @@ import {
 import { Socket } from 'socket.io';
 import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { AuthService } from './auth/auth.service';
+import { Variables } from './static/variables';
 
 interface Tokens {
   jwt: string,
