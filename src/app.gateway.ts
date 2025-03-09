@@ -58,7 +58,10 @@ export class AppGateway {
 
     let decoded: any = this.jwtService.decode(jwt);
     await this.usersService.findOne(decoded.username)
-      .then((user: User) => Variables.sockets.set(client, user.uuid))
+      .then((user: User) => {
+        console.log(`register socket of user with uuid ${user.uuid}`);
+        Variables.sockets.set(client, user.uuid);
+      })
       .catch(err => console.error(`Caught error: ${err}`));
 
 

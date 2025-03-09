@@ -37,15 +37,15 @@ export class ChatGateway {
   handleChatMessage(@ConnectedSocket() client: Socket, @MessageBody() data: string): void {
     data = data.replaceAll('"', '');
 
-    console.log(`Got data: ${data}`);
+    console.log(`Got chat message: ${data}`);
 
     let userUuid = Variables.sockets.get(client) + '';
 
-    console.log(`User UUID: ${userUuid}`);
+    console.log(`Retrieved user UUID: ${userUuid}`);
 
     this.gameSessionService.findOneByUserUuid(userUuid)
       .then((userGameSession: UserGameSession) => {
-        console.log(`userGameSession: ${userGameSession.uuid}`);
+        console.log(`Retrieved userGameSession: ${userGameSession.uuid}`);
 
         let chatMessage = new ChatMessage();
         chatMessage.content = data;
@@ -55,7 +55,7 @@ export class ChatGateway {
       })
       .then(() => this.userService.findOneByUuid(userUuid))
       .then((user: User) => {
-        console.log(`userName: ${user.userName}`);
+        console.log(`Retrieved userName: ${user.userName}`);
 
         let iChatMessageResponse: IChatMessageResponse = {
           message: data,
@@ -64,10 +64,11 @@ export class ChatGateway {
         return iChatMessageResponse;
       })
       .then(response => {
-        console.log(`iChatMessageResponse: ${JSON.stringify(response)}`);
+        let resp = JSON.stringify(response);
+        console.log(`Send iChatMessageResponse: ${resp}`);
 
         for (let sk of Variables.sockets.keys()) {
-          sk.emit('chat-message', JSON.stringify(response));
+          sk.emit('chat-message', resp);
         }
       });
   }
