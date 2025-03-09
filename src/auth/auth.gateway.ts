@@ -6,15 +6,11 @@ import {
 } from '@nestjs/websockets';
 import { AuthService } from './auth.service';
 import { Socket } from 'socket.io';
-import { UsersService } from '../users/users.service';
-import { Variables } from '../static/variables';
-import { User } from '../model/user.entity';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class AuthGateway {
 
-  constructor(private authService: AuthService,
-              private usersService: UsersService) {
+  constructor(private authService: AuthService) {
   }
 
   /**
@@ -47,12 +43,10 @@ export class AuthGateway {
 
     try {
       let jwt = await this.authService.signIn(registerDto.userName, registerDto.password);
-      await this.usersService.findOne(registerDto.userName)
-        .then((u: User) => Variables.sockets.set(client, u.uuid));
 
       client.emit('login-successful', jwt);
     } catch (err) {
-      console.log(err);
+      console.log(`Caught error: ${err}`);
       return err.message;
     }
   }

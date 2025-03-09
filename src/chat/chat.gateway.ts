@@ -14,8 +14,8 @@ import { UserGameSessionService } from '../user-game-session/user-game-session.s
 import { UserGameSession } from '../model/userGameSession.entity';
 
 interface IChatMessageResponse {
-  content: string,
-  userName: string
+  username: string;
+  message: string;
 }
 
 @WebSocketGateway({ cors: { origin: '*' } })
@@ -35,25 +35,37 @@ export class ChatGateway {
 
   @SubscribeMessage('chat-message')
   handleChatMessage(@ConnectedSocket() client: Socket, @MessageBody() data: string): void {
+    data = data.replaceAll('"', '');
+
+    console.log(`Got data: ${data}`);
+
     let userUuid = Variables.sockets.get(client) + '';
+
+    console.log(`User UUID: ${userUuid}`);
 
     this.gameSessionService.findOneByUserUuid(userUuid)
       .then((userGameSession: UserGameSession) => {
+        console.log(`userGameSession: ${userGameSession.uuid}`);
+
         let chatMessage = new ChatMessage();
         chatMessage.content = data;
-        chatMessage.gameSession = userGameSession.gameSession;
+        chatMessage.gameSessionUuid = userGameSession.gameSession.uuid;
         chatMessage.writtenByUuid = userUuid;
         return this.chatService.save(chatMessage);
       })
       .then(() => this.userService.findOneByUuid(userUuid))
       .then((user: User) => {
+        console.log(`userName: ${user.userName}`);
+
         let iChatMessageResponse: IChatMessageResponse = {
-          content: data,
-          userName: user.userName,
+          message: data,
+          username: user.userName,
         };
         return iChatMessageResponse;
       })
       .then(response => {
+        console.log(`iChatMessageResponse: ${JSON.stringify(response)}`);
+
         for (let sk of Variables.sockets.keys()) {
           sk.emit('chat-message', JSON.stringify(response));
         }
