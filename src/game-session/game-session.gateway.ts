@@ -9,11 +9,15 @@ import { Socket } from 'socket.io';
 import { GameSessionService } from './game-session.service';
 import { GameSession } from '../model/gameSession.entity';
 import * as crypto from 'node:crypto';
+import { UserGameSessionService } from '../user-game-session/user-game-session.service';
+import { UsersService } from '../users/users.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class GameSessionGateway {
 
-  constructor(private gameSessionService: GameSessionService) {
+  constructor(private gameSessionService: GameSessionService,
+              private userGameSessionService: UserGameSessionService,
+              private usersService: UsersService) {
   }
 
   /**
@@ -27,7 +31,7 @@ export class GameSessionGateway {
   handleSessionCreation(@ConnectedSocket() client: Socket, @MessageBody() duration: string): void {
     //TODO: delete all other userGameSession entries for this user
     try {
-      let userUuid = Variables.sockets.get(client);
+      let userUuid = Variables.sockets.get(client) + '';
       let gameSession: GameSession = new GameSession();
       let hexCode = `#${crypto.randomBytes(4).toString('hex')}`;
       let parsedDuration = parseInt(duration);
@@ -43,7 +47,10 @@ export class GameSessionGateway {
       console.log(`Create new game session: ${JSON.stringify(gameSession)}`);
 
       this.gameSessionService.save(gameSession)
-        .then(() => client.emit('session-creation-successful', hexCode));
+        .then(() => this.userGameSessionService.assignUserToSession(userUuid, gameSession.uuid))
+        .then(() => client.emit('session-creation-successful', hexCode))
+        .then(() => this.usersService.findOneByUuid(userUuid))
+        .then(user => client.emit('player-joined', user?.userName));
     } catch (err) {
       console.error(`Caught error: ${err}`);
       return err.message;

@@ -9,7 +9,6 @@ interface ISessionInfo {
   admin: boolean
 }
 
-
 @WebSocketGateway({ cors: { origin: '*' } })
 export class UserGameSessionGateway {
 
