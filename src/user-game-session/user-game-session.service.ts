@@ -13,8 +13,28 @@ export class UserGameSessionService {
   async findOneByUserUuid(uuid: string): Promise<UserGameSession | null> {
     return this.repo.findOne({
       where: {
-        userUuid: uuid
-      }
+        userUuid: uuid,
+      },
+    });
+  }
+
+  async assignUserToSession(userUuid: string, sessionUuid: string) {
+    this.repo.delete({
+      userUuid: userUuid,
+    })
+      .then(() => {
+        let userGameSession: UserGameSession = new UserGameSession();
+        userGameSession.userUuid = userUuid;
+        userGameSession.gameSessionUuid = sessionUuid;
+        this.repo.save(userGameSession);
+      });
+  }
+
+  async findAssignedUsers(sessionUuid: string) {
+    return this.repo.find({
+      where: {
+        gameSessionUuid: sessionUuid,
+      },
     });
   }
 }

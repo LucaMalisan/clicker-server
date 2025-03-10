@@ -34,16 +34,16 @@ export class UserGameSession {
   @Column({ name: 'game_session' })
   gameSessionUuid: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   points: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   rank: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   maxVirus: number; //current max of virus user can have
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   earlyExit: boolean; //user is not allowed to re-join, e.g. because of expulsion
 
   @UpdateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
