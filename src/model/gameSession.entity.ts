@@ -5,7 +5,7 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   ManyToOne,
-  JoinColumn
+  JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 
@@ -19,11 +19,24 @@ export class GameSession {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
-  @Column({ type: 'int'})
+  @Column({ type: 'varchar' })
+  hexCode: string;
+
+  @Column({ type: 'int' })
   duration: number;
 
-  @Column({ type: 'timestamptz'})
+  @Column({ type: 'timestamptz', nullable: true })
   startedAt: Date;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  endedAt: Date;
+
+  @Column({ name: 'created_by' })
+  createdByUuid?: string;
+
+  @ManyToOne(() => User, user => user.uuid, { eager: true })
+  @JoinColumn({ name: 'created_by' })
+  createdBy?: User;
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
