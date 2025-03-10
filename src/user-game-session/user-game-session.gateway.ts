@@ -9,6 +9,7 @@ import { UsersService } from '../users/users.service';
 
 interface ISessionInfo {
   sessionKey: string,
+  joinedPlayers: any[]
   admin: boolean
 }
 
@@ -34,11 +35,20 @@ export class UserGameSessionGateway {
 
       return await this.userGameSessionService.findOneByUserUuid(userUuid)
         .then(userGameSession => userGameSession?.gameSession)
-        .then(gameSession => {
+        .then(async gameSession => {
+          let assignedUsers = await this.userGameSessionService.findAssignedUsers(gameSession?.uuid + '');
+          return { assignedUsers: assignedUsers.map(e => e.user?.userName), gameSession: gameSession };
+        })
+        .then(json => {
+          let gameSession = json.gameSession;
+          let assignedUsers = json.assignedUsers;
+
           let response: ISessionInfo = {
             sessionKey: gameSession?.hexCode + '',
+            joinedPlayers: assignedUsers,
             admin: gameSession?.createdByUuid === userUuid,
           };
+
           return JSON.stringify(response);
         });
     } catch (err) {

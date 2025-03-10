@@ -19,9 +19,22 @@ export class UserGameSessionService {
   }
 
   async assignUserToSession(userUuid: string, sessionUuid: string) {
-    let userGameSession: UserGameSession = new UserGameSession();
-    userGameSession.userUuid = userUuid;
-    userGameSession.gameSessionUuid = sessionUuid;
-    await this.repo.save(userGameSession);
+    this.repo.delete({
+      userUuid: userUuid,
+    })
+      .then(() => {
+        let userGameSession: UserGameSession = new UserGameSession();
+        userGameSession.userUuid = userUuid;
+        userGameSession.gameSessionUuid = sessionUuid;
+        this.repo.save(userGameSession);
+      });
+  }
+
+  async findAssignedUsers(sessionUuid: string) {
+    return this.repo.find({
+      where: {
+        gameSessionUuid: sessionUuid,
+      },
+    });
   }
 }

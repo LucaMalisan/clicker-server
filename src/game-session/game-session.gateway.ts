@@ -45,9 +45,7 @@ export class GameSessionGateway {
       console.log(`Create new game session: ${JSON.stringify(gameSession)}`);
 
       this.gameSessionService.save(gameSession)
-      //  .then(() => this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid)) TODO fix this
-      //  .then(() => this.usersService.findOneByUuid(userUuid))
-      //  .then(user => client.emit('player-joined', user?.userName));
+        .then(() => client.emit('session-creation-successful', gameSession.hexCode));
     } catch (err) {
       console.error(`Caught error: ${err}`);
       return err.message;
