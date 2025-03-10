@@ -11,7 +11,6 @@ import { UsersModule } from '../users/users.module';
   imports: [
     TypeOrmModule.forRoot(configService.getTypeOrmConfig()),
     TypeOrmModule.forFeature([GameSession]),
-    UserGameSessionModule,
     UsersModule,
   ],
   providers: [GameSessionService, GameSessionGateway],

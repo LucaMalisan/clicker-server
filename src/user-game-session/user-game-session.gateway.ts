@@ -1,7 +1,10 @@
-import { ConnectedSocket, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
 import { Variables } from '../static/variables';
 import { Socket } from 'socket.io';
 import { UserGameSessionService } from './user-game-session.service';
+import { GameSessionService } from '../game-session/game-session.service';
+import { GameSession } from '../model/gameSession.entity';
+import { UsersService } from '../users/users.service';
 
 
 interface ISessionInfo {
@@ -12,7 +15,9 @@ interface ISessionInfo {
 @WebSocketGateway({ cors: { origin: '*' } })
 export class UserGameSessionGateway {
 
-  constructor(private userGameSessionService: UserGameSessionService) {
+  constructor(private userGameSessionService: UserGameSessionService,
+              private gameSessionService: GameSessionService,
+              private usersService: UsersService) {
   }
 
   /**
@@ -40,5 +45,23 @@ export class UserGameSessionGateway {
       console.error(`Caught error: ${err}`);
       return err.message;
     }
+  }
+
+  @SubscribeMessage('join-session')
+  async handleSessionJoining(@ConnectedSocket() client: Socket, @MessageBody() key: string) {
+    let userUuid = Variables.sockets.get(client) + '';
+
+    this.gameSessionService.findOneByKey(key)
+      .then((gameSession: GameSession) => this.userGameSessionService.assignUserToSession(userUuid, gameSession.uuid))
+      .then(() => this.usersService.findOneByUuid(userUuid))
+      .then(user => {
+        client.emit('join-successful', '');
+        return user;
+      })
+      .then(user => {
+        for (let socket of Variables.sockets.keys()) {
+          socket.emit('player-joined', user?.userName);
+        }
+      });
   }
 }
