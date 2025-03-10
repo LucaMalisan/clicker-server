@@ -35,7 +35,6 @@ export class AppGateway {
    */
 
   @SubscribeMessage('register') async handleRegister(@ConnectedSocket() client: Socket, @MessageBody() tokens: string): Promise<string> {
-
     let json: Tokens = JSON.parse(tokens);
     let jwt = json.jwt;
 

@@ -25,6 +25,7 @@ export class GameSessionGateway {
 
   @SubscribeMessage('create-session')
   handleSessionCreation(@ConnectedSocket() client: Socket, @MessageBody() duration: string): void {
+    //TODO: delete all other userGameSession entries for this user
     try {
       let userUuid = Variables.sockets.get(client);
       let gameSession: GameSession = new GameSession();
