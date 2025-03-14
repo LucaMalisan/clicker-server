@@ -10,8 +10,8 @@ import { ChatMessage } from '../model/chatMessage.entity';
 import { Socket } from 'socket.io';
 import { UsersService } from '../users/users.service';
 import { User } from '../model/user.entity';
-import { UserGameSessionService } from '../user-game-session/user-game-session.service';
 import { UserGameSession } from '../model/userGameSession.entity';
+import { GameSessionService } from '../game-session/game-session.service';
 
 interface IChatMessageResponse {
   username: string;
@@ -23,7 +23,7 @@ export class ChatGateway {
 
   constructor(private chatService: ChatService,
               private userService: UsersService,
-              private gameSessionService: UserGameSessionService) {
+              private gameSessionService: GameSessionService) {
   }
 
   /**
