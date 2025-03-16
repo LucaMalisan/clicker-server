@@ -25,8 +25,7 @@ export class UserEffect {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
-  @ManyToOne(() => Effect, effect => effect.name, { eager: true })
-  @JoinColumn({ name: 'effect' })
+  @ManyToOne(() => Effect)
   effect: Effect;
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })

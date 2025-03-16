@@ -31,12 +31,12 @@ export class GameSession {
   @Column({ type: 'timestamptz', nullable: true })
   endedAt: Date;
 
-  @Column({ name: 'created_by' })
-  createdByUuid?: string;
-
-  @ManyToOne(() => User, user => user.uuid, { eager: true })
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'created_by' })
   createdBy?: User;
+
+  @Column({ name: 'created_by' })
+  createdByUuid?: User["uuid"];
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

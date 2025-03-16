@@ -20,19 +20,17 @@ export class UserGameSession {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
-  @ManyToOne(() => User, user => user.uuid, { eager: true })
-  @JoinColumn({ name: 'user' })
+  @ManyToOne(() => User, { eager: true })
   user?: User;
 
-  @Column({ name: 'user' })
-  userUuid?: string;
+  @Column()
+  userUuid?: User["uuid"];
 
-  @ManyToOne(() => GameSession, gameSession => gameSession.uuid, { eager: true })
-  @JoinColumn({ name: 'game_session' })
+  @ManyToOne(() => GameSession, { eager: true })
   gameSession: GameSession;
 
-  @Column({ name: 'game_session' })
-  gameSessionUuid: string;
+  @Column()
+  gameSessionUuid: GameSession["uuid"];
 
   @Column({ type: 'int', nullable: true })
   points: number;

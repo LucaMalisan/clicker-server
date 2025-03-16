@@ -18,14 +18,6 @@ export class UsersService {
     });
   }
 
-  async findOneByUuid(uuid: string): Promise<User | null> {
-    return this.repo.findOne({
-      where: {
-        uuid: uuid,
-      },
-    });
-  }
-
   async save(user: User): Promise<User[]> {
     return this.repo.save([user]);
   }
