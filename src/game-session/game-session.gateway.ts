@@ -91,14 +91,23 @@ export class GameSessionGateway {
           }
           return userGameSession?.gameSession;
         })
-        .then(gameSession => setTimeout(async () => {
-          for (let socket of Variables.sockets.keys()) {
-            socket.emit('stop-session', '');
-          }
-          gameSession.endedAt = new Date(Date.now());
-          await this.gameSessionService.save(gameSession);
-          Promise.resolve();
-        }, gameSession?.duration * 60 * 1000));
+        .then(async gameSession => {
+          gameSession.startedAt = new Date(Date.now());
+          return this.gameSessionService.save(gameSession);
+        })
+        .then((gameSessions: GameSession[]) => {
+          let gameSession = gameSessions[0];
+
+          setTimeout(async () => {
+            for (let socket of Variables.sockets.keys()) {
+              console.log('stop session');
+              socket.emit('stop-session', '');
+            }
+            gameSession.endedAt = new Date(Date.now());
+            await this.gameSessionService.save(gameSession);
+            Promise.resolve();
+          }, gameSession?.duration * 60 * 1000);
+        });
     }
   }
 
