@@ -33,15 +33,10 @@ export class GameSessionService {
   }
 
   async assignUserToSession(userUuid: string, sessionUuid: string): Promise<UserGameSession | null> {
-    return this.userGameSessionRepo.delete({
-      userUuid: userUuid,
-    })
-      .then(() => {
-        let userGameSession: UserGameSession = new UserGameSession();
-        userGameSession.userUuid = userUuid;
-        userGameSession.gameSessionUuid = sessionUuid;
-        return this.userGameSessionRepo.save(userGameSession);
-      })
+    let userGameSession: UserGameSession = new UserGameSession();
+    userGameSession.userUuid = userUuid;
+    userGameSession.gameSessionUuid = sessionUuid;
+    return this.userGameSessionRepo.save(userGameSession)
       .then(userGameSession => this.userGameSessionRepo.findOne({ where: { uuid: userGameSession.uuid } }));
   }
 

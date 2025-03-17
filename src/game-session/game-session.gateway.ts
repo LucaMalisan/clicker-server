@@ -9,7 +9,6 @@ import { Socket } from 'socket.io';
 import { GameSessionService } from './game-session.service';
 import { GameSession } from '../model/gameSession.entity';
 import * as crypto from 'node:crypto';
-import { UsersService } from '../users/users.service';
 import { UserGameSession } from 'src/model/userGameSession.entity';
 
 interface ISessionInfo {
@@ -23,8 +22,7 @@ export class GameSessionGateway {
 
   protected readyClients: String[] = [];
 
-  constructor(private gameSessionService: GameSessionService,
-              private usersService: UsersService) {
+  constructor(private gameSessionService: GameSessionService) {
   }
 
   /**
@@ -36,7 +34,6 @@ export class GameSessionGateway {
 
   @SubscribeMessage('create-session')
   handleSessionCreation(@ConnectedSocket() client: Socket, @MessageBody() duration: string): void {
-    //TODO: delete all other userGameSession entries for this user
     try {
       let userUuid = Variables.sockets.get(client) + '';
       let gameSession: GameSession = new GameSession();
@@ -89,26 +86,31 @@ export class GameSessionGateway {
           for (let socket of Variables.sockets.keys()) {
             socket.emit('start-timer', userGameSession?.gameSession.duration + '');
           }
-          return userGameSession?.gameSession;
+          return userGameSession;
         })
-        .then(async gameSession => {
+        .then(async userGameSession => {
+          let gameSession = userGameSession.gameSession;
           gameSession.startedAt = new Date(Date.now());
-          return this.gameSessionService.save(gameSession);
+          await this.gameSessionService.save(gameSession);
+          return userGameSession;
         })
-        .then((gameSessions: GameSession[]) => {
-          let gameSession = gameSessions[0];
-
-          setTimeout(async () => {
-            for (let socket of Variables.sockets.keys()) {
-              console.log('stop session');
-              socket.emit('stop-session', '');
-            }
-            gameSession.endedAt = new Date(Date.now());
-            await this.gameSessionService.save(gameSession);
-            Promise.resolve();
-          }, gameSession?.duration * 60 * 1000);
+        .then((userGameSession: UserGameSession) => {
+          let gameSession = userGameSession.gameSession;
+          setTimeout(async () => this.stopGameSession(gameSession), gameSession?.duration * 60 * 1000);
         });
     }
+  }
+
+  protected async stopGameSession(gameSession: GameSession) {
+    for (let socket of Variables.sockets.keys()) {
+      console.log('stop session');
+      socket.emit('stop-session', '');
+    }
+    gameSession.endedAt = new Date(Date.now());
+    await this.gameSessionService.save(gameSession);
+    this.readyClients = [];
+
+    Promise.resolve();
   }
 
   /**
