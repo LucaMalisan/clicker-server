@@ -53,13 +53,13 @@ export class ChatGateway {
         chatMessage.writtenByUuid = userUuid;
         return this.chatService.save(chatMessage);
       })
-      .then(() => this.userService.findOneByUuid(userUuid))
-      .then((user: User) => {
-        console.log(`Retrieved userName: ${user.userName}`);
+      .then((chatMessage: ChatMessage[]) => {
+        let user = chatMessage[0].writtenBy;
+        console.log(`Retrieved userName: ${user?.userName}`);
 
         let iChatMessageResponse: IChatMessageResponse = {
           message: data,
-          username: user.userName,
+          username: user?.userName + "",
         };
         return iChatMessageResponse;
       })

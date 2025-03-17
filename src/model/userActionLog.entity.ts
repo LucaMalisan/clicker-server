@@ -25,8 +25,7 @@ export class UserActionLog {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
-  @ManyToOne(() => UserGameSession, userGameSession => userGameSession.uuid)
-  @JoinColumn({ name: 'game_session' })
+  @ManyToOne(() => UserGameSession)
   userGameSession: UserGameSession;
 
   @Column({ type: 'varchar' })
