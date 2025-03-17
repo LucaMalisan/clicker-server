@@ -39,37 +39,49 @@ export class ChatGateway {
 
     console.log(`Got chat message: ${data}`);
 
-    let userUuid = Variables.getUserUuidBySocket(client) + '';
+    let userUuid = Variables.getUserUuidBySocket(client) as string;
 
     console.log(`Retrieved user UUID: ${userUuid}`);
 
-    this.gameSessionService.findOneByUserUuid(userUuid)
-      .then((userGameSession: UserGameSession) => {
-        console.log(`Retrieved userGameSession: ${userGameSession.uuid}`);
+    try {
+      if (!userUuid) {
+        throw new Error('user uuid could not be found');
+      }
 
-        let chatMessage = new ChatMessage();
-        chatMessage.content = data;
-        chatMessage.gameSessionUuid = userGameSession.gameSession.uuid;
-        chatMessage.writtenByUuid = userUuid;
-        return this.chatService.save(chatMessage);
-      })
-      .then((chatMessage: ChatMessage[]) => {
-        let user = chatMessage[0].writtenBy;
-        console.log(`Retrieved userName: ${user?.userName}`);
+      this.gameSessionService.findOneByUserUuid(userUuid)
+        .then((userGameSession: UserGameSession) => {
+          console.log(`Retrieved userGameSession: ${userGameSession.uuid}`);
 
-        let iChatMessageResponse: IChatMessageResponse = {
-          message: data,
-          username: user?.userName + "",
-        };
-        return iChatMessageResponse;
-      })
-      .then(response => {
-        let resp = JSON.stringify(response);
-        console.log(`Send iChatMessageResponse: ${resp}`);
+          let chatMessage = new ChatMessage();
+          chatMessage.content = data;
+          chatMessage.gameSessionUuid = userGameSession.gameSession.uuid;
+          chatMessage.writtenByUuid = userUuid;
+          return this.chatService.save(chatMessage);
+        })
+        .then((chatMessage: ChatMessage[]) => {
+          let user = chatMessage[0].writtenBy;
+          console.log(`Retrieved userName: ${user?.userName}`);
 
-        for (let sk of Variables.sockets.values()) {
-          sk.emit('chat-message', resp);
-        }
-      });
+          if (!user?.userName) {
+            throw new Error('could not read username');
+          }
+
+          let iChatMessageResponse: IChatMessageResponse = {
+            message: data,
+            username: user?.userName,
+          };
+          return iChatMessageResponse;
+        })
+        .then(response => {
+          let resp = JSON.stringify(response);
+          console.log(`Send iChatMessageResponse: ${resp}`);
+
+          for (let sk of Variables.sockets.values()) {
+            sk.emit('chat-message', resp);
+          }
+        });
+    } catch (err) {
+      console.error(`caught error: ${err}`);
+    }
   }
 }

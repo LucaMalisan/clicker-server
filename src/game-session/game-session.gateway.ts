@@ -35,7 +35,11 @@ export class GameSessionGateway {
   @SubscribeMessage('create-session')
   handleSessionCreation(@ConnectedSocket() client: Socket, @MessageBody() duration: string): void {
     try {
-      let userUuid = Variables.getUserUuidBySocket(client) + '';
+      let userUuid = Variables.getUserUuidBySocket(client) as string;
+
+      if (!userUuid) {
+        throw new Error('user uuid could not be found');
+      }
       let gameSession: GameSession = new GameSession();
       let hexCode = `#${crypto.randomBytes(4).toString('hex')}`;
       let parsedDuration = parseInt(duration);
@@ -44,7 +48,7 @@ export class GameSessionGateway {
         throw new Error('Duration must be greater than 0');
       }
 
-      gameSession.createdByUuid = userUuid + '';
+      gameSession.createdByUuid = userUuid;
       gameSession.duration = parseInt(duration);
       gameSession.hexCode = hexCode;
 
@@ -67,37 +71,57 @@ export class GameSessionGateway {
 
   @SubscribeMessage('ready-for-game-start')
   getConfirmationForGameStart(@ConnectedSocket() client: Socket): void {
-    let userUuid = Variables.getUserUuidBySocket(client) + '';
+    let userUuid = Variables.getUserUuidBySocket(client) as string;
 
-    this.readyClients.push(userUuid);
-    let allClientsRegistered = true;
-
-    for (let uuid of Variables.sockets.keys()) {
-      if (!this.readyClients.includes(uuid)) {
-        allClientsRegistered = false;
+    try {
+      if (!userUuid) {
+        throw new Error('user uuid could not be read');
       }
-    }
 
-    if (allClientsRegistered) {
-      console.log('all clients ready');
+      this.readyClients.push(userUuid);
+      let allClientsRegistered = true;
 
-      this.gameSessionService.findOneByUserUuid(userUuid)
-        .then((userGameSession: UserGameSession) => {
-          for (let socket of Variables.sockets.values()) {
-            socket.emit('start-timer', userGameSession?.gameSession.duration + '');
-          }
-          return userGameSession;
-        })
-        .then(async userGameSession => {
-          let gameSession = userGameSession.gameSession;
-          gameSession.startedAt = new Date(Date.now());
-          await this.gameSessionService.save(gameSession);
-          return userGameSession;
-        })
-        .then((userGameSession: UserGameSession) => {
-          let gameSession = userGameSession.gameSession;
-          setTimeout(async () => this.stopGameSession(gameSession), gameSession?.duration * 60 * 1000);
-        });
+      for (let uuid of Variables.sockets.keys()) {
+        if (!this.readyClients.includes(uuid)) {
+          allClientsRegistered = false;
+        }
+      }
+
+      if (allClientsRegistered) {
+        console.log('all clients ready');
+
+        this.gameSessionService.findOneByUserUuid(userUuid)
+          .then((userGameSession: UserGameSession) => {
+            if (!userGameSession) {
+              return null;
+            }
+
+            for (let socket of Variables.sockets.values()) {
+              socket.emit('start-timer', userGameSession.gameSession?.duration);
+            }
+            return userGameSession;
+          })
+          .then(async userGameSession => {
+            if (!userGameSession) {
+              return null;
+            }
+
+            let gameSession = userGameSession.gameSession;
+            gameSession.startedAt = new Date(Date.now());
+            await this.gameSessionService.save(gameSession);
+            return userGameSession;
+          })
+          .then((userGameSession: UserGameSession) => {
+            if (!userGameSession) {
+              return null;
+            }
+
+            let gameSession = userGameSession.gameSession;
+            setTimeout(async () => this.stopGameSession(gameSession), gameSession.duration * 60 * 1000);
+          });
+      }
+    } catch (err) {
+      console.error(`caught error: ${err}`);
     }
   }
 
@@ -123,22 +147,31 @@ export class GameSessionGateway {
   @SubscribeMessage('get-session-info')
   async handleGetSessionInfo(@ConnectedSocket() client: Socket): Promise<string> {
     try {
-      let userUuid = Variables.getUserUuidBySocket(client) + '';
+      let userUuid = Variables.getUserUuidBySocket(client) as string;
+
+      if (!userUuid) {
+        throw new Error('could not read user uuid');
+      }
 
       return await this.gameSessionService.findOneByUserUuid(userUuid)
         .then(userGameSession => {
           return userGameSession?.gameSession;
         })
         .then(async gameSession => {
-          let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession?.uuid + '');
-          return { assignedUsers: assignedUsers.map(e => e.user?.userName), gameSession: gameSession };
+          let assignedUsers: UserGameSession[] = [];
+
+          if (gameSession) {
+            assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession ? gameSession.uuid : '');
+          }
+
+          return { assignedUsers: assignedUsers?.map(e => e.user?.userName), gameSession: gameSession };
         })
         .then(json => {
           let gameSession = json.gameSession;
           let assignedUsers = json.assignedUsers;
 
           let response: ISessionInfo = {
-            sessionKey: gameSession?.hexCode + '',
+            sessionKey: gameSession ? gameSession.hexCode : '',
             joinedPlayers: assignedUsers,
             admin: gameSession?.createdByUuid === userUuid,
           };
@@ -153,17 +186,25 @@ export class GameSessionGateway {
 
   @SubscribeMessage('join-session')
   async handleSessionJoining(@ConnectedSocket() client: Socket, @MessageBody() key: string) {
-    let userUuid = Variables.getUserUuidBySocket(client) + '';
+    let userUuid = Variables.getUserUuidBySocket(client) as string;
 
-    this.gameSessionService.findOneByKey(key)
-      .then((gameSession: GameSession) => this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid))
-      .then(userGameSession => {
-        client.emit('join-successful', '');
+    try {
+      if (!userUuid) {
+        throw new Error('could not read user uuid');
+      }
 
-        let user = userGameSession?.user;
-        for (let socket of Variables.sockets.values()) {
-          socket.emit('player-joined', user?.userName);
-        }
-      });
+      this.gameSessionService.findOneByKey(key)
+        .then((gameSession: GameSession) => this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid))
+        .then(userGameSession => {
+          client.emit('join-successful', '');
+
+          let user = userGameSession?.user;
+          for (let socket of Variables.sockets.values()) {
+            socket.emit('player-joined', user?.userName);
+          }
+        });
+    } catch (err) {
+      console.error(`caught error: ${err}`);
+    }
   }
 }
