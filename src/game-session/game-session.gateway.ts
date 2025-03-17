@@ -35,7 +35,7 @@ export class GameSessionGateway {
   @SubscribeMessage('create-session')
   handleSessionCreation(@ConnectedSocket() client: Socket, @MessageBody() duration: string): void {
     try {
-      let userUuid = Variables.sockets.get(client) + '';
+      let userUuid = Variables.getUserUuidBySocket(client) + '';
       let gameSession: GameSession = new GameSession();
       let hexCode = `#${crypto.randomBytes(4).toString('hex')}`;
       let parsedDuration = parseInt(duration);
@@ -67,12 +67,12 @@ export class GameSessionGateway {
 
   @SubscribeMessage('ready-for-game-start')
   getConfirmationForGameStart(@ConnectedSocket() client: Socket): void {
-    let userUuid = Variables.sockets.get(client) + '';
+    let userUuid = Variables.getUserUuidBySocket(client) + '';
 
     this.readyClients.push(userUuid);
     let allClientsRegistered = true;
 
-    for (let uuid of Variables.sockets.values()) {
+    for (let uuid of Variables.sockets.keys()) {
       if (!this.readyClients.includes(uuid)) {
         allClientsRegistered = false;
       }
@@ -83,7 +83,7 @@ export class GameSessionGateway {
 
       this.gameSessionService.findOneByUserUuid(userUuid)
         .then((userGameSession: UserGameSession) => {
-          for (let socket of Variables.sockets.keys()) {
+          for (let socket of Variables.sockets.values()) {
             socket.emit('start-timer', userGameSession?.gameSession.duration + '');
           }
           return userGameSession;
@@ -102,7 +102,7 @@ export class GameSessionGateway {
   }
 
   protected async stopGameSession(gameSession: GameSession) {
-    for (let socket of Variables.sockets.keys()) {
+    for (let socket of Variables.sockets.values()) {
       console.log('stop session');
       socket.emit('stop-session', '');
     }
@@ -123,7 +123,7 @@ export class GameSessionGateway {
   @SubscribeMessage('get-session-info')
   async handleGetSessionInfo(@ConnectedSocket() client: Socket): Promise<string> {
     try {
-      let userUuid = Variables.sockets.get(client) + '';
+      let userUuid = Variables.getUserUuidBySocket(client) + '';
 
       return await this.gameSessionService.findOneByUserUuid(userUuid)
         .then(userGameSession => {
@@ -153,7 +153,7 @@ export class GameSessionGateway {
 
   @SubscribeMessage('join-session')
   async handleSessionJoining(@ConnectedSocket() client: Socket, @MessageBody() key: string) {
-    let userUuid = Variables.sockets.get(client) + '';
+    let userUuid = Variables.getUserUuidBySocket(client) + '';
 
     this.gameSessionService.findOneByKey(key)
       .then((gameSession: GameSession) => this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid))
@@ -161,7 +161,7 @@ export class GameSessionGateway {
         client.emit('join-successful', '');
 
         let user = userGameSession?.user;
-        for (let socket of Variables.sockets.keys()) {
+        for (let socket of Variables.sockets.values()) {
           socket.emit('player-joined', user?.userName);
         }
       });

@@ -39,7 +39,7 @@ export class ChatGateway {
 
     console.log(`Got chat message: ${data}`);
 
-    let userUuid = Variables.sockets.get(client) + '';
+    let userUuid = Variables.getUserUuidBySocket(client) + '';
 
     console.log(`Retrieved user UUID: ${userUuid}`);
 
@@ -67,7 +67,7 @@ export class ChatGateway {
         let resp = JSON.stringify(response);
         console.log(`Send iChatMessageResponse: ${resp}`);
 
-        for (let sk of Variables.sockets.keys()) {
+        for (let sk of Variables.sockets.values()) {
           sk.emit('chat-message', resp);
         }
       });
