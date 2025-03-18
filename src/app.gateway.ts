@@ -59,7 +59,7 @@ export class AppGateway {
     await this.usersService.findOne(decoded.username)
       .then((user: User) => {
         console.log(`register socket of user with uuid ${user.uuid}`);
-        Variables.sockets.set(client, user.uuid);
+        Variables.sockets.set(user.uuid, client);
       })
       .catch(err => console.error(`Caught error: ${err}`));
 
