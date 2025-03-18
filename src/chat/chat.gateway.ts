@@ -11,7 +11,7 @@ import { Socket } from 'socket.io';
 import { UsersService } from '../users/users.service';
 import { User } from '../model/user.entity';
 import { UserGameSession } from '../model/userGameSession.entity';
-import { GameSessionService } from '../game-session/game-session.service';
+import { GameSessionService } from '../game/game-session.service';
 
 interface IChatMessageResponse {
   username: string;

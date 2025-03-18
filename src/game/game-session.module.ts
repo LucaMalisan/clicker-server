@@ -6,6 +6,7 @@ import { GameSession } from '../model/gameSession.entity';
 import { GameSessionGateway } from './game-session.gateway';
 import { UsersModule } from '../users/users.module';
 import { UserGameSession } from '../model/userGameSession.entity';
+import { GamePointsGateway } from './game-points.gateway';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { UserGameSession } from '../model/userGameSession.entity';
     UsersModule,
     GameSessionModule
   ],
-  providers: [GameSessionService, GameSessionGateway],
+  providers: [GameSessionService, GameSessionGateway, GamePointsGateway],
   exports: [GameSessionService],
 })
 

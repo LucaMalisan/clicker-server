@@ -16,6 +16,10 @@ export class GameSessionService {
     return this.gameSessionRepo.save([gameSession]);
   }
 
+  async saveUserGameSession(userGameSession: UserGameSession): Promise<UserGameSession[]> {
+    return this.userGameSessionRepo.save([userGameSession]);
+  }
+
   async findOneByKey(key: string): Promise<GameSession | null> {
     return this.gameSessionRepo.findOne({
       where: {
