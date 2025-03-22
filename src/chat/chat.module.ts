@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { configService } from '../config/config.service';
 import { ChatMessage } from '../model/chatMessage.entity';
 import { UsersModule } from '../users/users.module';
-import { GameSessionModule } from '../game-session/game-session.module';
+import { GameSessionModule } from '../game/game-session.module';
 
 @Module({
   imports: [

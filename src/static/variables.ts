@@ -1,5 +1,7 @@
 import { Socket } from 'socket.io';
 
+//TODO change to singleton
+
 export class Variables {
 
   public static sockets: Map<String, Socket> = new Map();
