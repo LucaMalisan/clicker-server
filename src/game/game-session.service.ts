@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { GameSession } from '../model/gameSession.entity';
 import { UserGameSession } from '../model/userGameSession.entity';
 
+//TODO set earlyExit and filter after it
+
 @Injectable()
 export class GameSessionService {
   constructor(
@@ -48,6 +50,14 @@ export class GameSessionService {
     return this.userGameSessionRepo.find({
       where: {
         gameSessionUuid: sessionUuid,
+      },
+    });
+  }
+
+  async findBySessionUuid(uuid: string): Promise<UserGameSession[] | null> {
+    return this.userGameSessionRepo.find({
+      where: {
+        gameSessionUuid: uuid,
       },
     });
   }
