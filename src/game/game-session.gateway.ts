@@ -207,4 +207,12 @@ export class GameSessionGateway {
       console.error(`caught error: ${err}`);
     }
   }
+
+  //TODO provide generic replay function for just replaying
+  @SubscribeMessage('start-game')
+  handleGameStart(): void {
+    for (let socket of Variables.sockets.values()) {
+      socket.emit('start-game');
+    }
+  }
 }
