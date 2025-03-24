@@ -14,11 +14,12 @@ export class GamePointsActor {
     activeGameSessions = activeGameSessions ? activeGameSessions : [];
 
     for (let gameSession of activeGameSessions) {
+
       let userGameSessions = await this.gameSessionService.findBySessionUuid(gameSession.uuid);
       userGameSessions = userGameSessions ? userGameSessions : [];
 
       for (let userGameSession of userGameSessions) {
-        Variables.sockets.get(userGameSession.uuid)?.emit('points', userGameSession.points);
+        Variables.sockets.get(userGameSession.userUuid + '')?.emit('points', userGameSession.points);
       }
     }
   }
