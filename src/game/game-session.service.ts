@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { GameSession } from '../model/gameSession.entity';
 import { UserGameSession } from '../model/userGameSession.entity';
 
@@ -16,6 +16,14 @@ export class GameSessionService {
 
   async save(gameSession: GameSession): Promise<GameSession[]> {
     return this.gameSessionRepo.save([gameSession]);
+  }
+
+  async findActive(): Promise<GameSession[] | null> {
+    return this.gameSessionRepo.find({
+      where: {
+        endedAt: IsNull(),
+      },
+    });
   }
 
   async saveUserGameSession(userGameSession: UserGameSession): Promise<UserGameSession[]> {
