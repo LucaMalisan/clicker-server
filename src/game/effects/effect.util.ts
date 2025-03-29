@@ -50,7 +50,6 @@ export class EffectUtil {
   calculateEfficiency(userEffect: UserEffect) {
     let currentLevel = userEffect.currentLevel;
     let effect = userEffect.effect;
-    console.log(userEffect);
     return effect.startEfficiency * ((effect.efficiencyIncrease) ** (currentLevel - 1));
   }
 
