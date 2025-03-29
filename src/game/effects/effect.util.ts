@@ -42,15 +42,12 @@ export class EffectUtil {
 
   calculatePrice(effect: Effect, userEffect: UserEffect | null) {
     let currentLevel = userEffect ? userEffect.currentLevel : 0;
-    console.log(`price: ${effect.startPrice}*${effect.priceIncrease}^${currentLevel}`);
     return effect.startPrice * ((effect.priceIncrease) ** (currentLevel));
   }
 
   calculateEfficiency(userEffect: UserEffect) {
     let currentLevel = userEffect.currentLevel;
     let effect = userEffect.effect;
-    console.log(userEffect)
-    console.log(`efficiency: ${effect.startEfficiency}*${effect.efficiencyIncrease}^${currentLevel-1}`);
     return effect.startEfficiency * ((effect.efficiencyIncrease) ** (currentLevel - 1));
   }
 

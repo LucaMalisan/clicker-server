@@ -6,12 +6,11 @@ import { EffectUtil } from './effect.util';
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EffectGateway {
 
-  constructor(private effectUtil: EffectUtil) {}
+  constructor(private effectUtil: EffectUtil) {
+  }
 
   @SubscribeMessage('get-effects') async getEffects(@ConnectedSocket() client: Socket): Promise<string> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
-    let effects = await this.effectUtil.getEffects(userUuid);
-    console.log(effects)
     return this.effectUtil.getEffects(userUuid);
   }
 }
