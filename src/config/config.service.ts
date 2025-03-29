@@ -45,7 +45,7 @@ class ConfigService {
 
       synchronize: true,
 
-      entities: [__dirname + '/../**/*.entity.js'],
+      entities: [__dirname + '/../**/*.entity.{js,ts}'],
 
       ssl: this.isProduction(),
     };

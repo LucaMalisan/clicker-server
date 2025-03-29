@@ -1,14 +1,14 @@
-import { Effect } from './effect';
+import { AbstractEffect } from '../abstract-effect';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
-import { Variables } from '../../static/variables';
-import { GameSessionService } from '../game-session.service';
-import { UserGameSession } from '../../model/userGameSession.entity';
+import { Variables } from '../../../static/variables';
+import { GameSessionService } from '../../game-session.service';
+import { UserGameSession } from '../../../model/userGameSession.entity';
 
 @Injectable()
 @WebSocketGateway({ cors: { origin: '*' } })
-export class ButtonClickEffect extends Effect {
+export class ButtonClickEffect extends AbstractEffect {
 
   constructor(private gameSessionService: GameSessionService) {
     super();
