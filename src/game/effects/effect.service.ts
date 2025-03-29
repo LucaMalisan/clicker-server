@@ -51,4 +51,12 @@ export class EffectService {
     }
     return this.userEffectRepo.save(entry);
   }
+
+  async findByUuid(userEffectUuid: string) {
+    return this.userEffectRepo.findOne({
+      where: {
+        uuid: userEffectUuid,
+      },
+    });
+  }
 }

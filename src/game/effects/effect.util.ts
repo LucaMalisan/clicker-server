@@ -10,7 +10,8 @@ interface IEffect {
   name: string,
   description: string,
   cost: string,
-  route: string
+  route: string,
+  icon: string
 }
 
 @Injectable()
@@ -34,6 +35,7 @@ export class EffectUtil {
         description: effect.description,
         cost: cost + '',
         route: effect.activationRoute,
+        icon: effect.googleIcon,
       });
     }
 
@@ -48,13 +50,15 @@ export class EffectUtil {
   calculateEfficiency(userEffect: UserEffect) {
     let currentLevel = userEffect.currentLevel;
     let effect = userEffect.effect;
+    console.log(userEffect);
     return effect.startEfficiency * ((effect.efficiencyIncrease) ** (currentLevel - 1));
   }
 
   async updateDatabase(userGameSession: UserGameSession, effect: Effect, userEffect: UserEffect | null) {
     userGameSession.points -= this.calculatePrice(effect, userEffect);
     await this.gameSessionService.saveUserGameSession(userGameSession);
-    return this.effectService.increaseLevelOrCreateEntry(effect.name, userGameSession.userUuid + '');
+    let newEntry = await this.effectService.increaseLevelOrCreateEntry(effect.name, userGameSession.userUuid + '');
+    return this.effectService.findByUuid(newEntry.uuid);
   }
 
   clearOldInterval(userEffect: UserEffect) {

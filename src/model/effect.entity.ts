@@ -32,7 +32,7 @@ export class Effect {
   priceIncrease: number; //per level
 
   @Column({ type: 'varchar' })
-  pathToIcon: string; //for icon image
+  googleIcon: string; //for icon image
 
   @Column({ type: 'varchar' })
   activationRoute: string; //which URL should be called to activate effect
