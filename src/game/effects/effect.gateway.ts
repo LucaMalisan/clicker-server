@@ -1,34 +1,17 @@
-import { SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
-import { Effect } from 'src/model/effect.entity';
-import { EffectService } from './effect.service';
-
-interface IEffect {
-  name: string,
-  description: string,
-  cost: string,
-  route: string
-}
+import { ConnectedSocket, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
+import { Socket } from 'socket.io';
+import { Variables } from '../../static/variables';
+import { EffectUtil } from './effect.util';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EffectGateway {
 
-  constructor(private effectService: EffectService) {
-  }
+  constructor(private effectUtil: EffectUtil) {}
 
-  @SubscribeMessage('get-effects')
-  handleSessionCreation(): Promise<string> {
-    return this.effectService.findAll()
-      .then((effects: Effect[]) => {
-        return effects.map(e => {
-          let iEffect: IEffect = {
-            name: e.name,
-            description: e.description,
-            cost: '50', //TODO calculate this via userEffect
-            route: e.activationRoute,
-          };
-          return iEffect;
-        });
-      })
-      .then(effects => JSON.stringify(effects));
+  @SubscribeMessage('get-effects') async getEffects(@ConnectedSocket() client: Socket): Promise<string> {
+    let userUuid = Variables.getUserUuidBySocket(client) as string;
+    let effects = await this.effectUtil.getEffects(userUuid);
+    console.log(effects)
+    return this.effectUtil.getEffects(userUuid);
   }
 }

@@ -25,8 +25,20 @@ export class UserEffect {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
-  @ManyToOne(() => Effect)
+  @ManyToOne(() => Effect, { eager: true })
   effect: Effect;
+
+  @Column()
+  effectName: Effect["name"];
+
+  @ManyToOne(() => User, { eager: true })
+  user?: User;
+
+  @Column()
+  userUuid: User["uuid"];
+
+  @Column({ type: 'int' })
+  currentLevel: number;
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

@@ -1,1 +1,3 @@
-export abstract class AbstractEffect {}
+export abstract class AbstractEffect {
+
+}

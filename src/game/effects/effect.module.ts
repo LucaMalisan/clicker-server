@@ -12,13 +12,15 @@ import { UserGameSession } from '../../model/userGameSession.entity';
 import { EffectGateway } from './effect.gateway';
 import { EffectService } from './effect.service';
 import { Effect } from '../../model/effect.entity';
+import { UserEffect } from '../../model/userEffect.entity';
+import { EffectUtil } from './effect.util';
 
 const effects = [AsyncGenEffect, ButtonClickEffect]; // Liste aller Effekte
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(configService.getTypeOrmConfig()),
-    TypeOrmModule.forFeature([GameSession, UserGameSession, Effect]),
+    TypeOrmModule.forFeature([GameSession, UserGameSession, Effect, UserEffect]),
   ],
   providers: [
     ...effects,
@@ -30,9 +32,10 @@ const effects = [AsyncGenEffect, ButtonClickEffect]; // Liste aller Effekte
     },
     EffectManager,
     GameSessionService,
-    EffectService
+    EffectService,
+    EffectUtil
   ],
-  exports: [EffectManager, EffectGateway],
+  exports: [EffectManager, EffectGateway, EffectUtil],
 })
 
 export class EffectsModule {
