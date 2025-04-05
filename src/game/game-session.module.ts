@@ -6,16 +6,19 @@ import { GameSession } from '../model/gameSession.entity';
 import { GameSessionGateway } from './game-session.gateway';
 import { UsersModule } from '../users/users.module';
 import { UserGameSession } from '../model/userGameSession.entity';
-import { GamePointsGateway } from './game-points.gateway';
+import { EffectsModule } from './effects/effect.module';
+import { PointsModule } from './points/points.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(configService.getTypeOrmConfig()),
     TypeOrmModule.forFeature([GameSession, UserGameSession]),
     UsersModule,
-    GameSessionModule
+    GameSessionModule,
+    EffectsModule,
+    PointsModule,
   ],
-  providers: [GameSessionService, GameSessionGateway, GamePointsGateway],
+  providers: [GameSessionService, GameSessionGateway],
   exports: [GameSessionService],
 })
 
