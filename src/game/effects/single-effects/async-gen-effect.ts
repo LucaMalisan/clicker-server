@@ -6,12 +6,13 @@ import { Variables } from '../../../static/variables';
 import { UserGameSession } from '../../../model/userGameSession.entity';
 import { GameSessionService } from '../../game-session.service';
 import { EffectService } from '../effect.service';
-import { EffectGateway } from '../effect.gateway';
 import { EffectUtil } from '../effect.util';
 
 @Injectable()
 @WebSocketGateway({ cors: { origin: '*' } })
 export class AsyncGenEffect extends AbstractEffect {
+
+  protected static EFFECT_NAME = 'autoclick';
 
   constructor(private gameSessionService: GameSessionService,
               private effectService: EffectService,
@@ -19,23 +20,12 @@ export class AsyncGenEffect extends AbstractEffect {
     super();
   }
 
-  @SubscribeMessage('start-async-gen')
+  @SubscribeMessage('start-auto-click')
   public async execute(@ConnectedSocket() client: Socket) {
     try {
       let userUuid = Variables.getUserUuidBySocket(client) as string;
-      let userEffect = await this.effectService.findByEffectName('Async generation', userUuid);
-      let effect = await this.effectService.findByName('Async generation');
-      let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
-
-      if (!userGameSession) {
-        throw new Error('could not find user game session');
-      }
-
-      if (!effect) {
-        throw new Error('could not find effect');
-      }
-
-      let newEntry = await this.effectUtil.updateDatabase(userGameSession, effect, userEffect);
+      let userEffect = await this.effectService.findByEffectName(AsyncGenEffect.EFFECT_NAME, userUuid);
+      let newEntry = await this.effectUtil.updateDatabase(AsyncGenEffect.EFFECT_NAME, userUuid, userEffect);
 
       if (userEffect) {
         this.effectUtil.clearOldInterval(userEffect);
@@ -45,12 +35,12 @@ export class AsyncGenEffect extends AbstractEffect {
         throw new Error('Couldn\'t create or update userEffect entry');
       }
 
-      let efficiency = this.effectUtil.calculateEfficiency(newEntry);
+      let efficiency = await this.effectService.getEfficiencyOfEffectLevel(newEntry.effectName, newEntry.currentLevel);
 
       let newInterval = setInterval(async () => {
         this.gameSessionService.findOneByUserUuid(userUuid)
           .then((userGameSession: UserGameSession) => {
-            userGameSession.points += efficiency;
+            userGameSession.points += (efficiency ?? 0);
             this.gameSessionService.saveUserGameSession(userGameSession);
           });
       }, 1000);

@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Effect } from '../../model/effect.entity';
 import { EffectService } from './effect.service';
 import { UserEffect } from '../../model/userEffect.entity';
 import { Variables } from '../../static/variables';
-import { UserGameSession } from '../../model/userGameSession.entity';
 import { GameSessionService } from '../game-session.service';
 
 interface IEffect {
@@ -28,7 +26,13 @@ export class EffectUtil {
 
     for (let effect of effects) {
       let userEffect = await this.effectService.findByEffectName(effect.name, userUuid);
-      let cost = this.calculatePrice(effect, userEffect);
+      let currentLevel = this.getCurrentLevel(userEffect);
+
+      if (currentLevel >= effect.maxLevel) {
+        continue;
+      }
+
+      let cost = await this.effectService.getPriceOfEffectLevel(effect.name, currentLevel + 1);
 
       effectJSON.push({
         name: effect.name,
@@ -42,19 +46,25 @@ export class EffectUtil {
     return JSON.stringify(effectJSON);
   }
 
-  calculatePrice(effect: Effect, userEffect: UserEffect | null) {
-    let currentLevel = userEffect ? userEffect.currentLevel : 0;
-    return effect.startPrice * ((effect.priceIncrease) ** (currentLevel));
-  }
+  async updateDatabase(effectName: string, userUuid: string, userEffect: UserEffect | null): Promise<UserEffect | null> {
+    let effect = await this.effectService.findByName(effectName);
+    let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
 
-  calculateEfficiency(userEffect: UserEffect) {
-    let currentLevel = userEffect.currentLevel;
-    let effect = userEffect.effect;
-    return effect.startEfficiency * ((effect.efficiencyIncrease) ** (currentLevel - 1));
-  }
+    if (!userGameSession) {
+      throw new Error('could not find user game session');
+    }
 
-  async updateDatabase(userGameSession: UserGameSession, effect: Effect, userEffect: UserEffect | null) {
-    userGameSession.points -= this.calculatePrice(effect, userEffect);
+    if (!effect) {
+      throw new Error('could not find effect');
+    }
+    if (!effect) {
+      throw new Error('effect could not be found');
+    }
+
+    let currentLevel = this.getCurrentLevel(userEffect);
+    let price = await this.effectService.getPriceOfEffectLevel(effect.name, currentLevel + 1);
+    userGameSession.points -= (price ?? 0);
+
     await this.gameSessionService.saveUserGameSession(userGameSession);
     let newEntry = await this.effectService.increaseLevelOrCreateEntry(effect.name, userGameSession.userUuid + '');
     return this.effectService.findByUuid(newEntry.uuid);
@@ -63,5 +73,9 @@ export class EffectUtil {
   clearOldInterval(userEffect: UserEffect) {
     let oldInterval = Variables.userEffectIntervals.get(userEffect);
     clearInterval(oldInterval);
+  }
+
+  public getCurrentLevel(userEffect: UserEffect | null) {
+    return userEffect?.currentLevel ?? 0;
   }
 }

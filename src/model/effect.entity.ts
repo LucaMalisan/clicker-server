@@ -19,18 +19,6 @@ export class Effect {
   @Column({ type: 'int' })
   maxLevel: number;
 
-  @Column({ type: 'real' })
-  startEfficiency: number; //can be virus amount, probability etc.
-
-  @Column({ type: 'real' })
-  startPrice: number; //per level
-
-  @Column({ type: 'real' })
-  efficiencyIncrease: number; //per level
-
-  @Column({ type: 'real' })
-  priceIncrease: number; //per level
-
   @Column({ type: 'varchar' })
   googleIcon: string; //for icon image
 
