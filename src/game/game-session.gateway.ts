@@ -49,7 +49,7 @@ export class GameSessionGateway {
       }
 
       gameSession.createdByUuid = userUuid;
-      gameSession.duration = parseInt(duration);
+      gameSession.duration = parseInt(duration) * 60 * 1000;
       gameSession.hexCode = hexCode;
 
       console.log(`Create new game session: ${JSON.stringify(gameSession)}`);
@@ -69,8 +69,7 @@ export class GameSessionGateway {
    * @param duration
    */
 
-  @SubscribeMessage('ready-for-game-start')
-  getConfirmationForGameStart(@ConnectedSocket() client: Socket): void {
+  @SubscribeMessage('ready-for-game-start') async getConfirmationForGameStart(@ConnectedSocket() client: Socket): Promise<void> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
 
     try {
@@ -90,35 +89,30 @@ export class GameSessionGateway {
       if (allClientsRegistered) {
         console.log('all clients ready');
 
-        this.gameSessionService.findOneByUserUuid(userUuid)
+        let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid)
           .then((userGameSession: UserGameSession) => {
             if (!userGameSession) {
               return null;
             }
+
+            let gameSession = userGameSession.gameSession;
+            let duration = gameSession.startedAt
+              ? (gameSession.duration - (Date.now() - gameSession.startedAt.getTime()))
+              : gameSession.duration;
 
             for (let socket of Variables.sockets.values()) {
-              socket.emit('start-timer', userGameSession.gameSession?.duration);
+              socket.emit('start-timer', duration);
             }
             return userGameSession;
-          })
-          .then(async userGameSession => {
-            if (!userGameSession) {
-              return null;
-            }
-
-            let gameSession = userGameSession.gameSession;
-            gameSession.startedAt = new Date(Date.now());
-            await this.gameSessionService.save(gameSession);
-            return userGameSession;
-          })
-          .then((userGameSession: UserGameSession) => {
-            if (!userGameSession) {
-              return null;
-            }
-
-            let gameSession = userGameSession.gameSession;
-            setTimeout(async () => this.stopGameSession(gameSession), gameSession.duration * 60 * 1000);
           });
+
+        if (userGameSession && !userGameSession.gameSession?.startedAt) {
+          console.log("why we still here")
+          let gameSession = userGameSession.gameSession;
+          gameSession.startedAt = new Date(Date.now());
+          await this.gameSessionService.save(gameSession);
+          setTimeout(async () => this.stopGameSession(gameSession), gameSession.duration);
+        }
       }
     } catch (err) {
       console.error(`caught error: ${err}`);
