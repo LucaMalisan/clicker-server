@@ -7,7 +7,7 @@ export class Variables {
 
   public static sockets: Map<String, Socket> = new Map();
 
-  public static userEffectIntervals: Map<UserEffect, NodeJS.Timeout> = new Map();
+  public static userEffectIntervals: Map<String, NodeJS.Timeout> = new Map();
 
   public static getUserUuidBySocket(socket: Socket): String {
     for (let [key, value] of this.sockets.entries()) {

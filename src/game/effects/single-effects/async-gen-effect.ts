@@ -45,7 +45,7 @@ export class AsyncGenEffect extends AbstractEffect {
           });
       }, 1000);
 
-      Variables.userEffectIntervals.set(newEntry, newInterval);
+      Variables.userEffectIntervals.set(newEntry.uuid, newInterval);
 
       return this.effectUtil.getEffects(userUuid);
     } catch (err) {

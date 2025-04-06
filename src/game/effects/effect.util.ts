@@ -71,7 +71,7 @@ export class EffectUtil {
   }
 
   clearOldInterval(userEffect: UserEffect) {
-    let oldInterval = Variables.userEffectIntervals.get(userEffect);
+    let oldInterval = Variables.userEffectIntervals.get(userEffect.uuid);
     clearInterval(oldInterval);
   }
 
