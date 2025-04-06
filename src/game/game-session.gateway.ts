@@ -69,7 +69,8 @@ export class GameSessionGateway {
    * @param duration
    */
 
-  @SubscribeMessage('ready-for-game-start') async getConfirmationForGameStart(@ConnectedSocket() client: Socket): Promise<void> {
+  @SubscribeMessage('ready-for-game-start')
+  async getConfirmationForGameStart(@ConnectedSocket() client: Socket): Promise<void> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
 
     try {
@@ -107,7 +108,6 @@ export class GameSessionGateway {
           });
 
         if (userGameSession && !userGameSession.gameSession?.startedAt) {
-          console.log("why we still here")
           let gameSession = userGameSession.gameSession;
           gameSession.startedAt = new Date(Date.now());
           await this.gameSessionService.save(gameSession);
