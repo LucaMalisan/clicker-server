@@ -43,7 +43,7 @@ export class ButtonClickEffect extends AbstractEffect implements IPublishSubscri
 
   emit(eventName: string, ...args: any[]): void {
     this.subscribers.get(eventName)?.forEach(callback => {
-      callback(args);
+      callback(...args);
     });
   }
 
