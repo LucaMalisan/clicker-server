@@ -25,4 +25,7 @@ export class EffectDetail {
 
   @Column({ type: 'int' })
   efficiency: number;
+
+  @Column({ type: 'real', nullable: true })
+  probability: number;
 }
