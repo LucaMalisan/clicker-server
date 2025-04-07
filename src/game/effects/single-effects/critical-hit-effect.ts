@@ -33,9 +33,8 @@ export class CriticalHitEffect extends AbstractEffect {
         throw new Error('Couldn\'t create or update userEffect entry');
       }
 
-      let effectDetailEntry = await this.effectService.getLevelDetailEntry(CriticalHitEffect.EFFECT_NAME, newUserEffectEntry.currentLevel);
-
-      this.buttonClick.subscribe('handle-button-clicks', (clicks: string) => {
+      this.buttonClick.subscribe('handle-button-clicks', async (clicks: string) => {
+        let effectDetailEntry = await this.effectService.getLevelDetailEntry(CriticalHitEffect.EFFECT_NAME, newUserEffectEntry.currentLevel);
         let randomNumber = Math.random();
 
         if (randomNumber <= (effectDetailEntry?.probability ?? 0)) {
@@ -48,6 +47,8 @@ export class CriticalHitEffect extends AbstractEffect {
             });
         }
       });
+      return this.effectUtil.getEffects(userUuid);
+
     } catch (err) {
       console.error(err);
     }
