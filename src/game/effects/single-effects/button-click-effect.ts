@@ -5,10 +5,14 @@ import { Socket } from 'socket.io';
 import { Variables } from '../../../static/variables';
 import { GameSessionService } from '../../game-session.service';
 import { UserGameSession } from '../../../model/userGameSession.entity';
+import { IPublishSubscribe } from '../IPublishSubscribe';
+import * as console from 'node:console';
 
 @Injectable()
 @WebSocketGateway({ cors: { origin: '*' } })
-export class ButtonClickEffect extends AbstractEffect {
+export class ButtonClickEffect extends AbstractEffect implements IPublishSubscribe {
+
+  protected subscribers: Map<String, any[]> = new Map();
 
   constructor(private gameSessionService: GameSessionService) {
     super();
@@ -16,6 +20,8 @@ export class ButtonClickEffect extends AbstractEffect {
 
   @SubscribeMessage('handle-button-clicks')
   handleSessionCreation(@ConnectedSocket() client: Socket, @MessageBody() clicks: string): void {
+    this.emit('handle-button-clicks', clicks);
+
     let userUuid = Variables.getUserUuidBySocket(client) as string;
 
     try {
@@ -32,6 +38,24 @@ export class ButtonClickEffect extends AbstractEffect {
         });
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  emit(eventName: string, ...args: any[]): void {
+    this.subscribers.get(eventName)?.forEach(callback => {
+      callback(args);
+    });
+  }
+
+  subscribe(eventName: string, callback: any): void {
+    let val = this.subscribers.get(eventName);
+    console.log(eventName);
+
+    if (val) {
+      val.push(callback);
+      this.subscribers.set(eventName, val);
+    } else {
+      this.subscribers.set(eventName, [callback]);
     }
   }
 }

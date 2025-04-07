@@ -15,9 +15,9 @@ import { Effect } from '../../model/effect.entity';
 import { UserEffect } from '../../model/userEffect.entity';
 import { EffectUtil } from './effect.util';
 import { EffectDetail } from '../../model/effectDetail.entity';
-import { LeaderboardActor } from '../points/leaderboard.actor';
+import { CriticalHitEffect } from './single-effects/critical-hit-effect';
 
-const effects = [AsyncGenEffect, ButtonClickEffect]; // Liste aller Effekte
+const effects = [AsyncGenEffect, ButtonClickEffect, CriticalHitEffect]; // Liste aller Effekte
 
 @Module({
   imports: [
