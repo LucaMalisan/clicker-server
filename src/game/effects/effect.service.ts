@@ -55,22 +55,24 @@ export class EffectService {
   }
 
   async increaseLevelOrCreateEntry(effectName: string, userUuid: string) {
-    let entry = await this.userEffectRepo.findOne({
-      where: {
-        effectName: effectName,
-        userUuid: userUuid,
-      },
-    });
+    let payload = {
+      effectName: effectName,
+      userUuid: userUuid,
+      currentLevel: 1,
+    };
 
-    if (entry) {
-      entry.currentLevel += 1;
-    } else {
-      entry = new UserEffect();
-      entry.effectName = effectName;
-      entry.userUuid = userUuid;
-      entry.currentLevel = 1;
-    }
-    return this.userEffectRepo.save(entry);
+    let result = await this.userEffectRepo
+      .createQueryBuilder()
+      .insert()
+      .into(UserEffect)
+      .values(payload)
+      .orUpdate([], ['effectName', 'userUuid'])
+      .setParameter('incrementLevel', 'user_effect.currentLevel + 1')
+      .returning('*')
+      .updateEntity(false)
+      .execute();
+
+    return result.raw[0];
   }
 
   async findByUuid(userEffectUuid: string) {
