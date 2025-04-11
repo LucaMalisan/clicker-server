@@ -3,7 +3,6 @@ import { ConnectedSocket, SubscribeMessage, WebSocketGateway } from '@nestjs/web
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { Variables } from '../../../static/variables';
-import { UserGameSession } from '../../../model/userGameSession.entity';
 import { GameSessionService } from '../../game-session.service';
 import { EffectService } from '../effect.service';
 import { EffectUtil } from '../effect.util';
@@ -22,16 +21,20 @@ export class ReplicationEffect extends AbstractEffect {
               private effectService: EffectService,
               private effectUtil: EffectUtil,
               private criticalHit: CriticalHitEffect,
-              private autoclick: AsyncGenEffect) {
+              private autoclick: AsyncGenEffect,
+              private buttonClick: ButtonClickEffect) {
     super();
   }
 
   @SubscribeMessage('start-replication')
   public async execute(@ConnectedSocket() client: Socket) {
     try {
-      console.log("hello hello")
-
       let userUuid = Variables.getUserUuidBySocket(client) as string;
+
+      if (!userUuid) {
+        throw new Error('Could not read user uuid');
+      }
+
       let userEffect = await this.effectService.findByEffectName(ReplicationEffect.EFFECT_NAME, userUuid);
       let newUserEffectEntry = await this.effectUtil.updateDatabase(ReplicationEffect.EFFECT_NAME, userUuid, userEffect);
 
@@ -39,31 +42,28 @@ export class ReplicationEffect extends AbstractEffect {
         throw new Error('Couldn\'t create or update userEffect entry');
       }
 
-      let callback = async (clicks: number, userUuid: string) => {
-        console.log("registered clicks: " + clicks);
-        let points = this.collectedPoints.get(userUuid) ?? 0;
-        console.log("total clicks: " + clicks);
-        this.collectedPoints.set(userUuid, points + clicks);
+      let callback = async (clicks: string, userUuid: string) => {
+        let points: number = this.collectedPoints.get(userUuid) ?? 0;
+        points += parseInt(clicks);
+        this.collectedPoints.set(userUuid, points);
       };
 
-      this.autoclick.subscribe(AsyncGenEffect.EVENT_NAME, (clicks: number) => callback(clicks, userUuid));
-      this.criticalHit.subscribe(CriticalHitEffect.EVENT_NAME, (clicks: number) => callback(clicks, userUuid));
+      this.autoclick.subscribe(AsyncGenEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
+      this.criticalHit.subscribe(CriticalHitEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
+      this.buttonClick.subscribe(ButtonClickEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
 
-      setTimeout(async () => {
-        console.log("timeout function called")
+      let timeout = setTimeout(async () => {
         let points = this.collectedPoints.get(userUuid) ?? 0;
         let effectDetailEntry = await this.effectService.getLevelDetailEntry(ReplicationEffect.EFFECT_NAME, newUserEffectEntry.currentLevel);
         let addPoints = points * ((effectDetailEntry?.efficiency ?? 1) - 1);
+        await this.gameSessionService.updatePoints(userUuid, addPoints)
 
-        this.gameSessionService.findOneByUserUuid(userUuid)
-          .then((userGameSession: UserGameSession) => {
-            userGameSession.points = (userGameSession.points == null) ? addPoints : userGameSession.points + addPoints;
-            this.gameSessionService.saveUserGameSession(userGameSession);
-          });
-
-        this.autoclick.unsubscribe(AsyncGenEffect.EVENT_NAME, (clicks: number) => callback(clicks, userUuid));
-        this.criticalHit.unsubscribe(ButtonClickEffect.EVENT_NAME, (clicks: number) => callback(clicks, userUuid));
-      }, 10000);
+        this.autoclick.unsubscribe(AsyncGenEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
+        this.criticalHit.unsubscribe(CriticalHitEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
+        this.buttonClick.unsubscribe(ButtonClickEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
+        this.collectedPoints.set(userUuid, 0);
+        clearTimeout(timeout);
+      }, 5000);
 
       return this.effectUtil.getEffects(userUuid);
 

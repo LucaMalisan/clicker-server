@@ -29,6 +29,11 @@ export class CriticalHitEffect extends AbstractEffect implements IPublishSubscri
   public async execute(@ConnectedSocket() client: Socket) {
     try {
       let userUuid = Variables.getUserUuidBySocket(client) as string;
+
+      if (!userUuid) {
+        throw new Error('Could not read user uuid');
+      }
+
       let userEffect = await this.effectService.findByEffectName(CriticalHitEffect.EFFECT_NAME, userUuid);
       let newUserEffectEntry = await this.effectUtil.updateDatabase(CriticalHitEffect.EFFECT_NAME, userUuid, userEffect);
 
@@ -42,13 +47,7 @@ export class CriticalHitEffect extends AbstractEffect implements IPublishSubscri
 
         if (randomNumber <= (effectDetailEntry?.probability ?? 0)) {
           let addPoints = parseInt(clicks) * ((effectDetailEntry?.efficiency ?? 1) - 1);
-
-          this.gameSessionService.findOneByUserUuid(userUuid)
-            .then((userGameSession: UserGameSession) => {
-              userGameSession.points = (userGameSession.points == null) ? addPoints : userGameSession.points + addPoints;
-              this.gameSessionService.saveUserGameSession(userGameSession);
-              this.emit(CriticalHitEffect.EVENT_NAME, addPoints);
-            });
+          await this.gameSessionService.updatePoints(userUuid, addPoints)
         }
       });
       return this.effectUtil.getEffects(userUuid);

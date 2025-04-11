@@ -52,8 +52,6 @@ export class GameSessionGateway {
       gameSession.duration = parseInt(duration) * 60 * 1000;
       gameSession.hexCode = hexCode;
 
-      console.log(`Create new game session: ${JSON.stringify(gameSession)}`);
-
       this.gameSessionService.save(gameSession)
         .then(() => client.emit('session-creation-successful', gameSession.hexCode));
     } catch (err) {
@@ -88,8 +86,6 @@ export class GameSessionGateway {
       }
 
       if (allClientsRegistered) {
-        console.log('all clients ready');
-
         let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid)
           .then((userGameSession: UserGameSession) => {
             if (!userGameSession) {
@@ -121,7 +117,6 @@ export class GameSessionGateway {
 
   protected async stopGameSession(gameSession: GameSession) {
     for (let socket of Variables.sockets.values()) {
-      console.log('stop session');
       socket.emit('stop-session', '');
     }
     gameSession.endedAt = new Date(Date.now());

@@ -19,8 +19,7 @@ export class ButtonClickEffect extends AbstractEffect implements IPublishSubscri
     super();
   }
 
-  @SubscribeMessage('handle-button-clicks')
-  handleSessionCreation(@ConnectedSocket() client: Socket, @MessageBody() clicks: string): void {
+  @SubscribeMessage('handle-button-clicks') async handleButtonClicks(@ConnectedSocket() client: Socket, @MessageBody() clicks: string): Promise<void> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
 
     try {
@@ -28,14 +27,10 @@ export class ButtonClickEffect extends AbstractEffect implements IPublishSubscri
         throw new Error('Could not read user uuid');
       }
 
-      this.gameSessionService.findOneByUserUuid(userUuid)
-        .then(async (userGameSession: UserGameSession) => {
-          let factor = 1; //TODO is this needed for later?
-          let addPoints = parseInt(clicks) * factor;
-          userGameSession.points = (userGameSession.points == null) ? addPoints : userGameSession.points + addPoints;
-          await this.gameSessionService.saveUserGameSession(userGameSession);
-          this.emit(ButtonClickEffect.EVENT_NAME, addPoints);
-        });
+      let factor = 1; //TODO is this needed for later?
+      let addPoints = parseInt(clicks) * factor;
+      await this.gameSessionService.updatePoints(userUuid, addPoints);
+      this.emit(ButtonClickEffect.EVENT_NAME, addPoints);
     } catch (err) {
       console.error(err);
     }
@@ -55,6 +50,16 @@ export class ButtonClickEffect extends AbstractEffect implements IPublishSubscri
       this.subscribers.set(eventName, val);
     } else {
       this.subscribers.set(eventName, [callback]);
+    }
+  }
+
+  unsubscribe(eventName: string, callback: any): void {
+    let val = this.subscribers.get(eventName);
+
+    if (val) {
+      let index = val.indexOf(callback);
+      val.splice(index, 1);
+      this.subscribers.set(eventName, val);
     }
   }
 }

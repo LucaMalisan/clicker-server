@@ -16,7 +16,7 @@ export class AsyncGenEffect extends AbstractEffect implements IPublishSubscribe 
 
   protected subscribers: Map<String, any[]> = new Map();
   protected static EFFECT_NAME = 'autoclick';
-  public static EVENT_NAME = "handle-auto-click";
+  public static EVENT_NAME = 'handle-auto-click';
 
   constructor(private gameSessionService: GameSessionService,
               private effectService: EffectService,
@@ -28,6 +28,11 @@ export class AsyncGenEffect extends AbstractEffect implements IPublishSubscribe 
   public async execute(@ConnectedSocket() client: Socket) {
     try {
       let userUuid = Variables.getUserUuidBySocket(client) as string;
+
+      if (!userUuid) {
+        throw new Error('Could not read user uuid');
+      }
+
       let userEffect = await this.effectService.findByEffectName(AsyncGenEffect.EFFECT_NAME, userUuid);
       let newEntry = await this.effectUtil.updateDatabase(AsyncGenEffect.EFFECT_NAME, userUuid, userEffect);
 
@@ -42,13 +47,9 @@ export class AsyncGenEffect extends AbstractEffect implements IPublishSubscribe 
       let efficiency = await this.effectService.getEfficiencyOfEffectLevel(newEntry.effectName, newEntry.currentLevel);
 
       let newInterval = setInterval(async () => {
-        this.gameSessionService.findOneByUserUuid(userUuid)
-          .then((userGameSession: UserGameSession) => {
-            let pointsToAdd = efficiency ?? 0;
-            userGameSession.points += pointsToAdd
-            this.gameSessionService.saveUserGameSession(userGameSession);
-            this.emit(AsyncGenEffect.EVENT_NAME, pointsToAdd);
-          });
+        let pointsToAdd = efficiency ?? 0;
+        await this.gameSessionService.updatePoints(userUuid, pointsToAdd);
+        this.emit(AsyncGenEffect.EVENT_NAME, pointsToAdd);
       }, 1000);
 
       Variables.userEffectIntervals.set(newEntry.uuid, newInterval);

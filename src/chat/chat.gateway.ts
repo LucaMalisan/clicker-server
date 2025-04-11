@@ -37,11 +37,7 @@ export class ChatGateway {
   handleChatMessage(@ConnectedSocket() client: Socket, @MessageBody() data: string): void {
     data = data.replaceAll('"', '');
 
-    console.log(`Got chat message: ${data}`);
-
     let userUuid = Variables.getUserUuidBySocket(client) as string;
-
-    console.log(`Retrieved user UUID: ${userUuid}`);
 
     try {
       if (!userUuid) {
@@ -50,8 +46,6 @@ export class ChatGateway {
 
       this.gameSessionService.findOneByUserUuid(userUuid)
         .then((userGameSession: UserGameSession) => {
-          console.log(`Retrieved userGameSession: ${userGameSession.uuid}`);
-
           let chatMessage = new ChatMessage();
           chatMessage.content = data;
           chatMessage.gameSessionUuid = userGameSession.gameSession.uuid;
@@ -60,7 +54,6 @@ export class ChatGateway {
         })
         .then((chatMessage: ChatMessage[]) => {
           let user = chatMessage[0].writtenBy;
-          console.log(`Retrieved userName: ${user?.userName}`);
 
           if (!user?.userName) {
             throw new Error('could not read username');
@@ -74,7 +67,6 @@ export class ChatGateway {
         })
         .then(response => {
           let resp = JSON.stringify(response);
-          console.log(`Send iChatMessageResponse: ${resp}`);
 
           for (let sk of Variables.sockets.values()) {
             sk.emit('chat-message', resp);

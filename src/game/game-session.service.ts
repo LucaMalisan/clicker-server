@@ -30,6 +30,15 @@ export class GameSessionService {
     return this.userGameSessionRepo.save([userGameSession]);
   }
 
+  async updatePoints(userUuid: string, pointsToAdd: number) {
+    await this.userGameSessionRepo
+      .createQueryBuilder()
+      .update(UserGameSession)
+      .set({ points: () => `points + ${pointsToAdd}` })
+      .where('userUuid = :userUuid', { userUuid: userUuid })
+      .execute();
+  }
+
   async findOneByKey(key: string): Promise<GameSession | null> {
     return this.gameSessionRepo.findOne({
       where: {
