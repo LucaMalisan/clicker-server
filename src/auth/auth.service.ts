@@ -34,22 +34,14 @@ export class AuthService {
   }
 
   async register(username: string, password: string): Promise<any> {
-
     if (!username || !password) {
       throw new Error('Username or password can\'t be empty');
     }
 
-    let user = await this.usersService.findOne(username);
-
-    //user shouldn't exist yet
-    if (user) {
-      throw new Error('User with this e-mail already exists');
-    }
-
-    user = new User();
-    user.userName = username;
-    user.password = await bcrypt.hash(password, 12);
-    return this.usersService.save(user);
+    return this.usersService.createIfNotExists({
+      userName: username,
+      password: await bcrypt.hash(password, 12),
+    });
   }
 
   async refreshToken(refreshToken: string) {

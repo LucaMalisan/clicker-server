@@ -55,21 +55,20 @@ export class EffectService {
   }
 
   async increaseLevelOrCreateEntry(effectName: string, userUuid: string) {
-    let payload = {
-      effectName: effectName,
-      userUuid: userUuid,
-      currentLevel: 1,
-    };
-
     let result = await this.userEffectRepo
       .createQueryBuilder()
       .insert()
       .into(UserEffect)
-      .values(payload)
-      .orUpdate([], ['effectName', 'userUuid'])
-      .setParameter('incrementLevel', 'user_effect.currentLevel + 1')
+      .values({
+        effectName: effectName,
+        userUuid: userUuid,
+        currentLevel: 1,
+      })
+      .onConflict(
+        `("effectName", "userUuid") DO UPDATE SET "currentLevel" = "user_effect"."currentLevel" + 1`,
+      )
+      .setParameters({ incrementLevel: 'user_effect.currentLevel + 1' })
       .returning('*')
-      .updateEntity(false)
       .execute();
 
     return result.raw[0];

@@ -5,7 +5,7 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   ManyToOne,
-  JoinColumn, PrimaryGeneratedColumn,
+  JoinColumn, PrimaryGeneratedColumn, Index, Unique,
 } from 'typeorm';
 import { User } from './user.entity';
 import { GameSession } from './gameSession.entity';
@@ -20,6 +20,7 @@ import { Effect } from './effect.entity';
  */
 
 @Entity({ name: 'user_effect' })
+@Unique(['effectName', 'userUuid'])
 export class UserEffect {
 
   @PrimaryGeneratedColumn('uuid')
