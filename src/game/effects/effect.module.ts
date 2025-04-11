@@ -16,8 +16,9 @@ import { UserEffect } from '../../model/userEffect.entity';
 import { EffectUtil } from './effect.util';
 import { EffectDetail } from '../../model/effectDetail.entity';
 import { CriticalHitEffect } from './single-effects/critical-hit-effect';
+import { ReplicationEffect } from './single-effects/replication-effect.service';
 
-const effects = [AsyncGenEffect, ButtonClickEffect, CriticalHitEffect]; // Liste aller Effekte
+const effects = [AsyncGenEffect, ButtonClickEffect, CriticalHitEffect, ReplicationEffect]; // Liste aller Effekte
 
 @Module({
   imports: [

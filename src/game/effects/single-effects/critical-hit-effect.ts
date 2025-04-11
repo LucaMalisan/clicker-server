@@ -8,12 +8,15 @@ import { GameSessionService } from '../../game-session.service';
 import { EffectService } from '../effect.service';
 import { EffectUtil } from '../effect.util';
 import { ButtonClickEffect } from './button-click-effect';
+import { IPublishSubscribe } from '../IPublishSubscribe';
 
 @Injectable()
 @WebSocketGateway({ cors: { origin: '*' } })
-export class CriticalHitEffect extends AbstractEffect {
+export class CriticalHitEffect extends AbstractEffect implements IPublishSubscribe {
 
+  protected subscribers: Map<String, any[]> = new Map();
   protected static EFFECT_NAME = 'critical-hit';
+  public static EVENT_NAME = 'handle-critical-hit';
 
   constructor(private gameSessionService: GameSessionService,
               private effectService: EffectService,
@@ -33,7 +36,7 @@ export class CriticalHitEffect extends AbstractEffect {
         throw new Error('Couldn\'t create or update userEffect entry');
       }
 
-      this.buttonClick.subscribe('handle-button-clicks', async (clicks: string) => {
+      this.buttonClick.subscribe(ButtonClickEffect.EVENT_NAME, async (clicks: string) => {
         let effectDetailEntry = await this.effectService.getLevelDetailEntry(CriticalHitEffect.EFFECT_NAME, newUserEffectEntry.currentLevel);
         let randomNumber = Math.random();
 
@@ -44,6 +47,7 @@ export class CriticalHitEffect extends AbstractEffect {
             .then((userGameSession: UserGameSession) => {
               userGameSession.points = (userGameSession.points == null) ? addPoints : userGameSession.points + addPoints;
               this.gameSessionService.saveUserGameSession(userGameSession);
+              this.emit(CriticalHitEffect.EVENT_NAME, addPoints);
             });
         }
       });
@@ -51,6 +55,33 @@ export class CriticalHitEffect extends AbstractEffect {
 
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  emit(eventName: string, ...args: any[]): void {
+    this.subscribers.get(eventName)?.forEach(callback => {
+      callback(args);
+    });
+  }
+
+  subscribe(eventName: string, callback: any): void {
+    let val = this.subscribers.get(eventName);
+
+    if (val) {
+      val.push(callback);
+      this.subscribers.set(eventName, val);
+    } else {
+      this.subscribers.set(eventName, [callback]);
+    }
+  }
+
+  unsubscribe(eventName: string, callback: any): void {
+    let val = this.subscribers.get(eventName);
+
+    if (val) {
+      let index = val.indexOf(callback);
+      val.splice(index, 1);
+      this.subscribers.set(eventName, val);
     }
   }
 }

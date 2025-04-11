@@ -7,12 +7,16 @@ import { UserGameSession } from '../../../model/userGameSession.entity';
 import { GameSessionService } from '../../game-session.service';
 import { EffectService } from '../effect.service';
 import { EffectUtil } from '../effect.util';
+import { IPublishSubscribe } from '../IPublishSubscribe';
+import * as console from 'node:console';
 
 @Injectable()
 @WebSocketGateway({ cors: { origin: '*' } })
-export class AsyncGenEffect extends AbstractEffect {
+export class AsyncGenEffect extends AbstractEffect implements IPublishSubscribe {
 
+  protected subscribers: Map<String, any[]> = new Map();
   protected static EFFECT_NAME = 'autoclick';
+  public static EVENT_NAME = "handle-auto-click";
 
   constructor(private gameSessionService: GameSessionService,
               private effectService: EffectService,
@@ -40,8 +44,10 @@ export class AsyncGenEffect extends AbstractEffect {
       let newInterval = setInterval(async () => {
         this.gameSessionService.findOneByUserUuid(userUuid)
           .then((userGameSession: UserGameSession) => {
-            userGameSession.points += (efficiency ?? 0);
+            let pointsToAdd = efficiency ?? 0;
+            userGameSession.points += pointsToAdd
             this.gameSessionService.saveUserGameSession(userGameSession);
+            this.emit(AsyncGenEffect.EVENT_NAME, pointsToAdd);
           });
       }, 1000);
 
@@ -50,6 +56,33 @@ export class AsyncGenEffect extends AbstractEffect {
       return this.effectUtil.getEffects(userUuid);
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  emit(eventName: string, ...args: any[]): void {
+    this.subscribers.get(eventName)?.forEach(callback => {
+      callback(args);
+    });
+  }
+
+  subscribe(eventName: string, callback: any): void {
+    let val = this.subscribers.get(eventName);
+
+    if (val) {
+      val.push(callback);
+      this.subscribers.set(eventName, val);
+    } else {
+      this.subscribers.set(eventName, [callback]);
+    }
+  }
+
+  unsubscribe(eventName: string, callback: any): void {
+    let val = this.subscribers.get(eventName);
+
+    if (val) {
+      let index = val.indexOf(callback);
+      val.splice(index, 1);
+      this.subscribers.set(eventName, val);
     }
   }
 }
