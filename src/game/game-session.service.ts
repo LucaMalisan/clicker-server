@@ -18,6 +18,18 @@ export class GameSessionService {
     return this.gameSessionRepo.save([gameSession]);
   }
 
+  async create(payload) {
+    let result = await this.gameSessionRepo
+      .createQueryBuilder()
+      .insert()
+      .into(GameSession)
+      .values(payload)
+      .returning('*')
+      .execute();
+
+    return result.raw[0];
+  }
+
   async findActive(): Promise<GameSession[] | null> {
     return this.gameSessionRepo.find({
       where: {
@@ -26,8 +38,13 @@ export class GameSessionService {
     });
   }
 
-  async saveUserGameSession(userGameSession: UserGameSession): Promise<UserGameSession[]> {
-    return this.userGameSessionRepo.save([userGameSession]);
+  async updatePoints(userUuid: string, pointsToAdd: number) {
+    await this.userGameSessionRepo
+      .createQueryBuilder()
+      .update(UserGameSession)
+      .set({ points: () => `points + ${pointsToAdd}` })
+      .where('userUuid = :userUuid', { userUuid: userUuid })
+      .execute();
   }
 
   async findOneByKey(key: string): Promise<GameSession | null> {
@@ -47,11 +64,18 @@ export class GameSessionService {
   }
 
   async assignUserToSession(userUuid: string, sessionUuid: string): Promise<UserGameSession | null> {
-    let userGameSession: UserGameSession = new UserGameSession();
-    userGameSession.userUuid = userUuid;
-    userGameSession.gameSessionUuid = sessionUuid;
-    return this.userGameSessionRepo.save(userGameSession)
-      .then(userGameSession => this.userGameSessionRepo.findOne({ where: { uuid: userGameSession.uuid } }));
+    let result = await this.userGameSessionRepo
+      .createQueryBuilder()
+      .insert()
+      .into(UserGameSession)
+      .values({
+        userUuid: userUuid,
+        gameSessionUuid: sessionUuid,
+      })
+      .returning('*')
+      .execute();
+
+    return result.raw[0];
   }
 
   async findAssignedUsers(sessionUuid: string) {

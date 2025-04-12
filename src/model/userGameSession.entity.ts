@@ -32,7 +32,7 @@ export class UserGameSession {
   @Column()
   gameSessionUuid: GameSession["uuid"];
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int', nullable: false, default: 0 })
   points: number;
 
   @Column({ type: 'int', nullable: true })

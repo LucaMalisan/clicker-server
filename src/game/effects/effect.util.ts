@@ -48,12 +48,6 @@ export class EffectUtil {
 
   async updateDatabase(effectName: string, userUuid: string, userEffect: UserEffect | null): Promise<UserEffect | null> {
     let effect = await this.effectService.findByName(effectName);
-    let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
-
-    if (!userGameSession) {
-      throw new Error('could not find user game session');
-    }
-
     if (!effect) {
       throw new Error('could not find effect');
     }
@@ -63,10 +57,9 @@ export class EffectUtil {
 
     let currentLevel = this.getCurrentLevel(userEffect);
     let price = await this.effectService.getPriceOfEffectLevel(effect.name, currentLevel + 1);
-    userGameSession.points -= (price ?? 0);
+    this.gameSessionService.updatePoints(userUuid, (-1*(price ?? 0)));
 
-    await this.gameSessionService.saveUserGameSession(userGameSession);
-    let newEntry = await this.effectService.increaseLevelOrCreateEntry(effect.name, userGameSession.userUuid + '');
+    let newEntry = await this.effectService.increaseLevelOrCreateEntry(effect.name, userUuid);
     return this.effectService.findByUuid(newEntry.uuid);
   }
 

@@ -13,15 +13,13 @@ import * as console from 'node:console';
 export class ButtonClickEffect extends AbstractEffect implements IPublishSubscribe {
 
   protected subscribers: Map<String, any[]> = new Map();
+  public static EVENT_NAME = 'handle-button-clicks';
 
   constructor(private gameSessionService: GameSessionService) {
     super();
   }
 
-  @SubscribeMessage('handle-button-clicks')
-  handleSessionCreation(@ConnectedSocket() client: Socket, @MessageBody() clicks: string): void {
-    this.emit('handle-button-clicks', clicks);
-
+  @SubscribeMessage('handle-button-clicks') async handleButtonClicks(@ConnectedSocket() client: Socket, @MessageBody() clicks: string): Promise<void> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
 
     try {
@@ -29,13 +27,10 @@ export class ButtonClickEffect extends AbstractEffect implements IPublishSubscri
         throw new Error('Could not read user uuid');
       }
 
-      this.gameSessionService.findOneByUserUuid(userUuid)
-        .then(async (userGameSession: UserGameSession) => {
-          let factor = 1;
-          let addPoints = parseInt(clicks) * factor;
-          userGameSession.points = (userGameSession.points == null) ? addPoints : userGameSession.points + addPoints;
-          await this.gameSessionService.saveUserGameSession(userGameSession);
-        });
+      let factor = 1; //TODO is this needed for later?
+      let addPoints = parseInt(clicks) * factor;
+      await this.gameSessionService.updatePoints(userUuid, addPoints);
+      this.emit(ButtonClickEffect.EVENT_NAME, addPoints);
     } catch (err) {
       console.error(err);
     }
@@ -49,13 +44,22 @@ export class ButtonClickEffect extends AbstractEffect implements IPublishSubscri
 
   subscribe(eventName: string, callback: any): void {
     let val = this.subscribers.get(eventName);
-    console.log(eventName);
 
     if (val) {
       val.push(callback);
       this.subscribers.set(eventName, val);
     } else {
       this.subscribers.set(eventName, [callback]);
+    }
+  }
+
+  unsubscribe(eventName: string, callback: any): void {
+    let val = this.subscribers.get(eventName);
+
+    if (val) {
+      let index = val.indexOf(callback);
+      val.splice(index, 1);
+      this.subscribers.set(eventName, val);
     }
   }
 }

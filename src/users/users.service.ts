@@ -18,7 +18,16 @@ export class UsersService {
     });
   }
 
-  async save(user: User): Promise<User[]> {
-    return this.repo.save([user]);
+  async createIfNotExists(payload: any) {
+    let result = await this.repo
+      .createQueryBuilder()
+      .insert()
+      .into(User)
+      .values(payload)
+      .orUpdate([], ['userName'])
+      .returning('*')
+      .execute();
+
+    return result.raw[0];
   }
 }

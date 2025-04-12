@@ -32,30 +32,28 @@ export class GameSessionGateway {
    * @param duration
    */
 
-  @SubscribeMessage('create-session')
-  handleSessionCreation(@ConnectedSocket() client: Socket, @MessageBody() duration: string): void {
+  @SubscribeMessage('create-session') async handleSessionCreation(@ConnectedSocket() client: Socket, @MessageBody() duration: string): Promise<void> {
     try {
       let userUuid = Variables.getUserUuidBySocket(client) as string;
 
       if (!userUuid) {
         throw new Error('user uuid could not be found');
       }
-      let gameSession: GameSession = new GameSession();
-      let hexCode = `#${crypto.randomBytes(4).toString('hex')}`;
+
       let parsedDuration = parseInt(duration);
 
       if (parsedDuration <= 0) {
         throw new Error('Duration must be greater than 0');
       }
 
-      gameSession.createdByUuid = userUuid;
-      gameSession.duration = parseInt(duration) * 60 * 1000;
-      gameSession.hexCode = hexCode;
+      let gameSession = await this.gameSessionService.create({
+        createdByUuid: userUuid,
+        duration: parsedDuration * 60 * 1000,
+        hexCode: `#${crypto.randomBytes(4).toString('hex')}`,
+      });
 
-      console.log(`Create new game session: ${JSON.stringify(gameSession)}`);
+      client.emit('session-creation-successful', gameSession.hexCode);
 
-      this.gameSessionService.save(gameSession)
-        .then(() => client.emit('session-creation-successful', gameSession.hexCode));
     } catch (err) {
       console.error(`Caught error: ${err}`);
       return err.message;
@@ -79,40 +77,26 @@ export class GameSessionGateway {
       }
 
       this.readyClients.push(userUuid);
-      let allClientsRegistered = true;
-
-      for (let uuid of Variables.sockets.keys()) {
-        if (!this.readyClients.includes(uuid)) {
-          allClientsRegistered = false;
-        }
-      }
+      let allClientsRegistered = Variables.sockets.size <= this.readyClients.length;
 
       if (allClientsRegistered) {
-        console.log('all clients ready');
+        let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
+        let gameSession = userGameSession?.gameSession;
 
-        let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid)
-          .then((userGameSession: UserGameSession) => {
-            if (!userGameSession) {
-              return null;
-            }
+        if (!gameSession) {
+          throw new Error('could not find gameSession');
+        }
 
-            let gameSession = userGameSession.gameSession;
-            let duration = gameSession.startedAt
-              ? (gameSession.duration - (Date.now() - gameSession.startedAt.getTime()))
-              : gameSession.duration;
-
-            for (let socket of Variables.sockets.values()) {
-              socket.emit('start-timer', duration);
-            }
-            return userGameSession;
-          });
-
-        if (userGameSession && !userGameSession.gameSession?.startedAt) {
-          let gameSession = userGameSession.gameSession;
+        if (!gameSession.startedAt) {
           gameSession.startedAt = new Date(Date.now());
           await this.gameSessionService.save(gameSession);
-          setTimeout(async () => this.stopGameSession(gameSession), gameSession.duration);
         }
+
+        let duration = gameSession.duration - (Date.now() - gameSession.startedAt.getTime());
+        for (let socket of Variables.sockets.values()) {
+          socket.emit('start-timer', duration);
+        }
+        setTimeout(async () => this.stopGameSession(gameSession), gameSession.duration);
       }
     } catch (err) {
       console.error(`caught error: ${err}`);
@@ -121,7 +105,6 @@ export class GameSessionGateway {
 
   protected async stopGameSession(gameSession: GameSession) {
     for (let socket of Variables.sockets.values()) {
-      console.log('stop session');
       socket.emit('stop-session', '');
     }
     gameSession.endedAt = new Date(Date.now());
@@ -148,16 +131,9 @@ export class GameSessionGateway {
       }
 
       return await this.gameSessionService.findOneByUserUuid(userUuid)
-        .then(userGameSession => {
-          return userGameSession?.gameSession;
-        })
+        .then(userGameSession => userGameSession?.gameSession)
         .then(async gameSession => {
-          let assignedUsers: UserGameSession[] = [];
-
-          if (gameSession) {
-            assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession ? gameSession.uuid : '');
-          }
-
+          let assignedUsers: UserGameSession[] = await this.gameSessionService.findAssignedUsers(gameSession ? gameSession.uuid : '');
           return { assignedUsers: assignedUsers?.map(e => e.user?.userName), gameSession: gameSession };
         })
         .then(json => {
