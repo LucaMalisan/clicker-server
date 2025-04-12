@@ -54,6 +54,7 @@ export class AsyncGenEffect extends AbstractEffect implements IPublishSubscribe 
 
       Variables.userEffectIntervals.set(newEntry.uuid, newInterval);
 
+      client.emit('reactivate-effect', AsyncGenEffect.EFFECT_NAME);
       return this.effectUtil.getEffects(userUuid);
     } catch (err) {
       console.error(err);

@@ -56,12 +56,13 @@ export class ReplicationEffect extends AbstractEffect {
         let points = this.collectedPoints.get(userUuid) ?? 0;
         let effectDetailEntry = await this.effectService.getLevelDetailEntry(ReplicationEffect.EFFECT_NAME, newUserEffectEntry.currentLevel);
         let addPoints = points * ((effectDetailEntry?.efficiency ?? 1) - 1);
-        await this.gameSessionService.updatePoints(userUuid, addPoints)
+        await this.gameSessionService.updatePoints(userUuid, addPoints);
 
         this.autoclick.unsubscribe(AsyncGenEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
         this.criticalHit.unsubscribe(CriticalHitEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
         this.buttonClick.unsubscribe(ButtonClickEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
         this.collectedPoints.set(userUuid, 0);
+        client.emit('reactivate-effect', ReplicationEffect.EFFECT_NAME);
         clearTimeout(timeout);
       }, 5000);
 

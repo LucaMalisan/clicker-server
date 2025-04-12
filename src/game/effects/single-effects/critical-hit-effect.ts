@@ -47,9 +47,11 @@ export class CriticalHitEffect extends AbstractEffect implements IPublishSubscri
 
         if (randomNumber <= (effectDetailEntry?.probability ?? 0)) {
           let addPoints = parseInt(clicks) * ((effectDetailEntry?.efficiency ?? 1) - 1);
-          await this.gameSessionService.updatePoints(userUuid, addPoints)
+          await this.gameSessionService.updatePoints(userUuid, addPoints);
         }
       });
+
+      client.emit('reactivate-effect', CriticalHitEffect.EFFECT_NAME);
       return this.effectUtil.getEffects(userUuid);
 
     } catch (err) {
