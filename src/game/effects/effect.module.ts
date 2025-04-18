@@ -17,13 +17,16 @@ import { EffectUtil } from './effect.util';
 import { EffectDetail } from '../../model/effectDetail.entity';
 import { CriticalHitEffect } from './single-effects/critical-hit-effect';
 import { ReplicationEffect } from './single-effects/replication-effect.service';
+import { ReverseEngineeredEffect } from './single-effects/reverse-engineered-effect';
+import { User } from '../../model/user.entity';
+import { UsersService } from '../../users/users.service';
 
-const effects = [AsyncGenEffect, ButtonClickEffect, CriticalHitEffect, ReplicationEffect]; // Liste aller Effekte
+const effects = [AsyncGenEffect, ButtonClickEffect, CriticalHitEffect, ReplicationEffect, ReverseEngineeredEffect]; // Liste aller Effekte
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(configService.getTypeOrmConfig()),
-    TypeOrmModule.forFeature([GameSession, UserGameSession, Effect, UserEffect, EffectDetail]),
+    TypeOrmModule.forFeature([GameSession, UserGameSession, Effect, UserEffect, EffectDetail, User]),
   ],
   providers: [
     ...effects,
@@ -37,6 +40,7 @@ const effects = [AsyncGenEffect, ButtonClickEffect, CriticalHitEffect, Replicati
     GameSessionService,
     EffectService,
     EffectUtil,
+    UsersService
   ],
   exports: [EffectManager, EffectGateway, EffectUtil],
 })

@@ -93,4 +93,15 @@ export class GameSessionService {
       },
     });
   }
+
+  async findAnyButNotCurrentUser(userUuid: string, gameSessionUuid: string) {
+    return this.userGameSessionRepo
+      .createQueryBuilder()
+      .select()
+      .where('UserGameSession.gameSessionUuid = :gameSessionUuid AND UserGameSession.userUuid != :userUuid', {
+        gameSessionUuid: gameSessionUuid,
+        userUuid: userUuid,
+      })
+      .getOne();
+  }
 }
