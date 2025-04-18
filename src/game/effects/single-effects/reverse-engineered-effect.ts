@@ -9,7 +9,7 @@ import { EffectUtil } from '../effect.util';
 import { ButtonClickEffect } from './button-click-effect';
 import { AsyncGenEffect } from './async-gen-effect';
 import { CriticalHitEffect } from './critical-hit-effect';
-import { UsersService } from '../../../users/users.service';
+import { ReplicationEffect } from './replication-effect.service';
 
 @Injectable()
 @WebSocketGateway({ cors: { origin: '*' } })
@@ -19,11 +19,11 @@ export class ReverseEngineeredEffect extends AbstractEffect {
 
   constructor(private gameSessionService: GameSessionService,
               private effectService: EffectService,
-              private usersService: UsersService,
               private effectUtil: EffectUtil,
               private criticalHit: CriticalHitEffect,
               private autoclick: AsyncGenEffect,
-              private buttonClick: ButtonClickEffect) {
+              private buttonClick: ButtonClickEffect,
+              private replicationEffect: ReplicationEffect) {
     super();
   }
 
@@ -63,11 +63,14 @@ export class ReverseEngineeredEffect extends AbstractEffect {
       this.autoclick.subscribe(AsyncGenEffect.EVENT_NAME, (clicks: string) => callback(clicks, randomUser.userUuid ?? ''));
       this.criticalHit.subscribe(CriticalHitEffect.EVENT_NAME, (clicks: string) => callback(clicks, randomUser.userUuid ?? ''));
       this.buttonClick.subscribe(ButtonClickEffect.EVENT_NAME, (clicks: string) => callback(clicks, randomUser.userUuid ?? ''));
+      this.replicationEffect.subscribe(ReplicationEffect.EVENT_NAME, (clicks: string) => callback(clicks, randomUser.userUuid ?? ''));
 
       let timeout = setTimeout(async () => {
         this.autoclick.unsubscribe(AsyncGenEffect.EVENT_NAME, (clicks: string) => callback(clicks, randomUser.userUuid ?? ''));
         this.criticalHit.unsubscribe(CriticalHitEffect.EVENT_NAME, (clicks: string) => callback(clicks, randomUser.userUuid ?? ''));
         this.buttonClick.unsubscribe(ButtonClickEffect.EVENT_NAME, (clicks: string) => callback(clicks, randomUser.userUuid ?? ''));
+        this.replicationEffect.unsubscribe(ReplicationEffect.EVENT_NAME, (clicks: string) => callback(clicks, randomUser.userUuid ?? ''));
+
         client.emit('reactivate-effect', ReverseEngineeredEffect.EFFECT_NAME);
         clearTimeout(timeout);
       }, 5000);

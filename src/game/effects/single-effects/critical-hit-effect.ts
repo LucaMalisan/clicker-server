@@ -3,7 +3,6 @@ import { ConnectedSocket, SubscribeMessage, WebSocketGateway } from '@nestjs/web
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { Variables } from '../../../static/variables';
-import { UserGameSession } from '../../../model/userGameSession.entity';
 import { GameSessionService } from '../../game-session.service';
 import { EffectService } from '../effect.service';
 import { EffectUtil } from '../effect.util';
@@ -48,6 +47,7 @@ export class CriticalHitEffect extends AbstractEffect implements IPublishSubscri
         if (randomNumber <= (effectDetailEntry?.probability ?? 0)) {
           let addPoints = parseInt(clicks) * ((effectDetailEntry?.efficiency ?? 1) - 1);
           await this.gameSessionService.updatePoints(userUuid, addPoints);
+          this.emit(CriticalHitEffect.EVENT_NAME, addPoints);
         }
       });
 

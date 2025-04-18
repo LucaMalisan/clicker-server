@@ -9,12 +9,15 @@ import { EffectUtil } from '../effect.util';
 import { ButtonClickEffect } from './button-click-effect';
 import { AsyncGenEffect } from './async-gen-effect';
 import { CriticalHitEffect } from './critical-hit-effect';
+import { IPublishSubscribe } from '../IPublishSubscribe';
 
 @Injectable()
 @WebSocketGateway({ cors: { origin: '*' } })
-export class ReplicationEffect extends AbstractEffect {
+export class ReplicationEffect extends AbstractEffect implements IPublishSubscribe {
 
+  protected subscribers: Map<String, any[]> = new Map();
   protected static EFFECT_NAME = 'replication';
+  public static EVENT_NAME = 'replication';
   protected collectedPoints: Map<String, number> = new Map();
 
   constructor(private gameSessionService: GameSessionService,
@@ -57,10 +60,12 @@ export class ReplicationEffect extends AbstractEffect {
         let effectDetailEntry = await this.effectService.getLevelDetailEntry(ReplicationEffect.EFFECT_NAME, newUserEffectEntry.currentLevel);
         let addPoints = points * ((effectDetailEntry?.efficiency ?? 1) - 1);
         await this.gameSessionService.updatePoints(userUuid, addPoints);
+        this.emit(ReplicationEffect.EVENT_NAME, addPoints);
 
         this.autoclick.unsubscribe(AsyncGenEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
         this.criticalHit.unsubscribe(CriticalHitEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
         this.buttonClick.unsubscribe(ButtonClickEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
+
         this.collectedPoints.set(userUuid, 0);
         client.emit('reactivate-effect', ReplicationEffect.EFFECT_NAME);
         clearTimeout(timeout);
@@ -70,6 +75,33 @@ export class ReplicationEffect extends AbstractEffect {
 
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  emit(eventName: string, ...args: any[]): void {
+    this.subscribers.get(eventName)?.forEach(callback => {
+      callback(args);
+    });
+  }
+
+  subscribe(eventName: string, callback: any): void {
+    let val = this.subscribers.get(eventName);
+
+    if (val) {
+      val.push(callback);
+      this.subscribers.set(eventName, val);
+    } else {
+      this.subscribers.set(eventName, [callback]);
+    }
+  }
+
+  unsubscribe(eventName: string, callback: any): void {
+    let val = this.subscribers.get(eventName);
+
+    if (val) {
+      let index = val.indexOf(callback);
+      val.splice(index, 1);
+      this.subscribers.set(eventName, val);
     }
   }
 }
