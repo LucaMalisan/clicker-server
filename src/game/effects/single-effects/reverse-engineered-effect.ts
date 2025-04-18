@@ -75,7 +75,7 @@ export class ReverseEngineeredEffect extends AbstractEffect {
         clearTimeout(timeout);
       }, 5000);
 
-      return this.effectUtil.getEffects(userUuid);
+      return this.effectUtil.getAvailableEffects(userUuid);
 
     } catch (err) {
       console.error(err);

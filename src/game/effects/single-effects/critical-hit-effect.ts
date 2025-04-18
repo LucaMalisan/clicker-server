@@ -52,7 +52,7 @@ export class CriticalHitEffect extends AbstractEffect implements IPublishSubscri
       });
 
       client.emit('reactivate-effect', CriticalHitEffect.EFFECT_NAME);
-      return this.effectUtil.getEffects(userUuid);
+      return this.effectUtil.getAvailableEffects(userUuid);
 
     } catch (err) {
       console.error(err);

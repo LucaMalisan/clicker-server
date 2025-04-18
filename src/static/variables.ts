@@ -1,5 +1,4 @@
 import { Socket } from 'socket.io';
-import { UserEffect } from '../model/userEffect.entity';
 
 //TODO change to singleton
 
