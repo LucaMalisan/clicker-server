@@ -8,6 +8,7 @@ import { User } from './user.entity';
  */
 
 @Entity({ name: 'user_active_effects' })
+@Unique(['effectName', 'activatedByUuid', 'influencedUserUuid'])
 export class UserActiveEffects {
 
   @PrimaryGeneratedColumn('uuid')

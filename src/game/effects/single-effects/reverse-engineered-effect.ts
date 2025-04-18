@@ -42,18 +42,18 @@ export class ReverseEngineeredEffect extends AbstractEffect {
         throw new Error('Could not find game session');
       }
 
-      let userEffect = await this.effectService.findByEffectName(ReverseEngineeredEffect.EFFECT_NAME, userUuid);
-      let newUserEffectEntry = await this.effectUtil.updateDatabase(ReverseEngineeredEffect.EFFECT_NAME, userUuid, userEffect);
-
-      if (!newUserEffectEntry) {
-        throw new Error('Couldn\'t create or update userEffect entry');
-      }
-
       //TODO should user be choosable?
       let randomUser = await this.gameSessionService.findAnyButNotCurrentUser(userUuid, gameSession.gameSessionUuid);
 
       if (!randomUser) {
         throw new Error('Couldn\'t find any user...');
+      }
+
+      let userEffect = await this.effectService.findByEffectName(ReverseEngineeredEffect.EFFECT_NAME, userUuid);
+      let newUserEffectEntry = await this.effectUtil.updateDatabase(ReverseEngineeredEffect.EFFECT_NAME, userUuid, randomUser.userUuid as string, userEffect);
+
+      if (!newUserEffectEntry) {
+        throw new Error('Couldn\'t create or update userEffect entry');
       }
 
       let callback = async (clicks: string, randomUserUuid: string) => {
@@ -71,6 +71,7 @@ export class ReverseEngineeredEffect extends AbstractEffect {
         this.buttonClick.unsubscribe(ButtonClickEffect.EVENT_NAME, (clicks: string) => callback(clicks, randomUser.userUuid ?? ''));
         this.replicationEffect.unsubscribe(ReplicationEffect.EVENT_NAME, (clicks: string) => callback(clicks, randomUser.userUuid ?? ''));
 
+        this.effectService.removeEffectLogEntry(ReverseEngineeredEffect.EFFECT_NAME, userUuid, randomUser.userUuid as string);
         client.emit('reactivate-effect', ReverseEngineeredEffect.EFFECT_NAME);
         clearTimeout(timeout);
       }, 5000);

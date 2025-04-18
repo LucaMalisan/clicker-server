@@ -5,6 +5,7 @@ import { Effect } from '../../model/effect.entity';
 import { EffectDetail } from '../../model/effectDetail.entity';
 import { UserPurchasedEffects } from '../../model/userPurchasedEffects.entity';
 import { UserActiveEffects } from 'src/model/userActiveEffects.entity';
+import { User } from '../../model/user.entity';
 
 @Injectable()
 export class EffectService {
@@ -76,14 +77,6 @@ export class EffectService {
     return result.raw[0];
   }
 
-  async findByUuid(userEffectUuid: string) {
-    return this.userPurchasedEffectRepo.findOne({
-      where: {
-        uuid: userEffectUuid,
-      },
-    });
-  }
-
   private userActiveEffectsBaseQuery() {
     return this.userActiveEffectRepo
       .createQueryBuilder()
@@ -102,5 +95,33 @@ export class EffectService {
     return this.userActiveEffectsBaseQuery()
       .where('UserActiveEffects.activatedByUuid = :userUuid and UserActiveEffects.influencedUserUuid != :userUuid', { userUuid: userUuid })
       .getMany();
+  }
+
+  async createEffectLogEntry(effectName: string, activatedByUserUuid: string, influencedUserUuid: string) {
+    return this.userActiveEffectRepo
+      .createQueryBuilder()
+      .insert()
+      .into(UserActiveEffects)
+      .values({
+        effectName: effectName,
+        influencedUserUuid: influencedUserUuid,
+        activatedByUuid: activatedByUserUuid,
+      })
+      .onConflict('("effectName", "influencedUserUuid", "activatedByUuid") DO NOTHING')
+      .returning('*')
+      .execute();
+  }
+
+  async removeEffectLogEntry(effectName: string, activatedByUserUuid: string, influencedUserUuid: string) {
+    return this.userActiveEffectRepo
+      .createQueryBuilder()
+      .delete()
+      .where('user_active_effects.\"effectName\" = :effectName AND user_active_effects.\"activatedByUuid\" = :activatedByUserUuid AND user_active_effects.\"influencedUserUuid\" = :influencedUserUuid',
+        {
+          effectName: effectName,
+          activatedByUserUuid: activatedByUserUuid,
+          influencedUserUuid: influencedUserUuid,
+        })
+      .execute();
   }
 }

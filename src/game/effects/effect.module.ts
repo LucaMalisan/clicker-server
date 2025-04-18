@@ -21,6 +21,7 @@ import { User } from '../../model/user.entity';
 import { UsersService } from '../../users/users.service';
 import { UserPurchasedEffects } from '../../model/userPurchasedEffects.entity';
 import { UserActiveEffects } from '../../model/userActiveEffects.entity';
+import { EffectLogActor } from './effectLog.actor';
 
 const effects = [AsyncGenEffect, ButtonClickEffect, CriticalHitEffect, ReplicationEffect, ReverseEngineeredEffect]; // Liste aller Effekte
 
@@ -41,9 +42,10 @@ const effects = [AsyncGenEffect, ButtonClickEffect, CriticalHitEffect, Replicati
     GameSessionService,
     EffectService,
     EffectUtil,
-    UsersService
+    UsersService,
+    EffectLogActor,
   ],
-  exports: [EffectManager, EffectGateway, EffectUtil],
+  exports: [EffectManager, EffectGateway, EffectUtil, EffectLogActor],
 })
 
 export class EffectsModule {

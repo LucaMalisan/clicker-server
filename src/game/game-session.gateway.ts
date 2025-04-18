@@ -164,7 +164,14 @@ export class GameSessionGateway {
       }
 
       this.gameSessionService.findOneByKey(key)
-        .then((gameSession: GameSession) => this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid))
+        .then((gameSession: GameSession) => {
+          if (!gameSession) {
+            console.error(`could not find game session`);
+            Promise.resolve();
+          }
+
+          return this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid);
+        })
         .then(userGameSession => {
           client.emit('join-successful', '');
 
