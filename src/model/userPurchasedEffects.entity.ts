@@ -13,15 +13,13 @@ import { UserGameSession } from './userGameSession.entity';
 import { Effect } from './effect.entity';
 
 /**
- * This table contains the currently activated effects of a user in a current game session
- * They can be positive (power-up) or negative (debuff received by another player)
+ * This table contains the buy history of a user and helps to determine which effects can be purchased next
  * This table gets cleared after the end of a game session
- * A log of all actions is in table "userAction"
  */
 
-@Entity({ name: 'user_effect' })
+@Entity({ name: 'user_purchased_effects' })
 @Unique(['effectName', 'userUuid'])
-export class UserEffect {
+export class UserPurchasedEffects {
 
   @PrimaryGeneratedColumn('uuid')
   uuid: string;

@@ -39,7 +39,7 @@ export class ReplicationEffect extends AbstractEffect implements IPublishSubscri
       }
 
       let userEffect = await this.effectService.findByEffectName(ReplicationEffect.EFFECT_NAME, userUuid);
-      let newUserEffectEntry = await this.effectUtil.updateDatabase(ReplicationEffect.EFFECT_NAME, userUuid, userEffect);
+      let newUserEffectEntry = await this.effectUtil.updateDatabase(ReplicationEffect.EFFECT_NAME, userUuid, userUuid, userEffect);
 
       if (!newUserEffectEntry) {
         throw new Error('Couldn\'t create or update userEffect entry');
@@ -66,12 +66,13 @@ export class ReplicationEffect extends AbstractEffect implements IPublishSubscri
         this.criticalHit.unsubscribe(CriticalHitEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
         this.buttonClick.unsubscribe(ButtonClickEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
 
+        this.effectService.removeEffectLogEntry(ReplicationEffect.EFFECT_NAME, userUuid, userUuid);
         this.collectedPoints.set(userUuid, 0);
         client.emit('reactivate-effect', ReplicationEffect.EFFECT_NAME);
         clearTimeout(timeout);
       }, 5000);
 
-      return this.effectUtil.getEffects(userUuid);
+      return this.effectUtil.getAvailableEffects(userUuid);
 
     } catch (err) {
       console.error(err);

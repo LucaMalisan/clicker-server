@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { EffectService } from './effect.service';
-import { UserEffect } from '../../model/userEffect.entity';
 import { Variables } from '../../static/variables';
 import { GameSessionService } from '../game-session.service';
+import { UserPurchasedEffects } from '../../model/userPurchasedEffects.entity';
 
 interface IEffect {
   name: string,
@@ -20,7 +20,7 @@ export class EffectUtil {
 
   }
 
-  async getEffects(userUuid: string) {
+  async getAvailableEffects(userUuid: string) {
     let effects = await this.effectService.findAll();
     let effectJSON: IEffect[] = [];
 
@@ -46,7 +46,7 @@ export class EffectUtil {
     return JSON.stringify(effectJSON);
   }
 
-  async updateDatabase(effectName: string, userUuid: string, userEffect: UserEffect | null): Promise<UserEffect | null> {
+  async updateDatabase(effectName: string, createdByUserUuid: string, influencedUserUuid: string, userEffect: UserPurchasedEffects | null): Promise<UserPurchasedEffects | null> {
     let effect = await this.effectService.findByName(effectName);
     if (!effect) {
       throw new Error('could not find effect');
@@ -57,18 +57,17 @@ export class EffectUtil {
 
     let currentLevel = this.getCurrentLevel(userEffect);
     let price = await this.effectService.getPriceOfEffectLevel(effect.name, currentLevel + 1);
-    this.gameSessionService.updatePoints(userUuid, (-1*(price ?? 0)));
-
-    let newEntry = await this.effectService.increaseLevelOrCreateEntry(effect.name, userUuid);
-    return this.effectService.findByUuid(newEntry.uuid);
+    this.gameSessionService.updatePoints(createdByUserUuid, (-1*(price ?? 0)));
+    await this.effectService.createEffectLogEntry(effectName, createdByUserUuid, influencedUserUuid);
+    return this.effectService.increaseLevelOrCreateEntry(effect.name, createdByUserUuid);
   }
 
-  clearOldInterval(userEffect: UserEffect) {
+  clearOldInterval(userEffect: UserPurchasedEffects) {
     let oldInterval = Variables.userEffectIntervals.get(userEffect.uuid);
     clearInterval(oldInterval);
   }
 
-  public getCurrentLevel(userEffect: UserEffect | null) {
+  public getCurrentLevel(userEffect: UserPurchasedEffects | null) {
     return userEffect?.currentLevel ?? 0;
   }
 }

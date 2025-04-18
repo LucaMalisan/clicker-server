@@ -34,7 +34,7 @@ export class CriticalHitEffect extends AbstractEffect implements IPublishSubscri
       }
 
       let userEffect = await this.effectService.findByEffectName(CriticalHitEffect.EFFECT_NAME, userUuid);
-      let newUserEffectEntry = await this.effectUtil.updateDatabase(CriticalHitEffect.EFFECT_NAME, userUuid, userEffect);
+      let newUserEffectEntry = await this.effectUtil.updateDatabase(CriticalHitEffect.EFFECT_NAME, userUuid, userUuid, userEffect);
 
       if (!newUserEffectEntry) {
         throw new Error('Couldn\'t create or update userEffect entry');
@@ -52,7 +52,7 @@ export class CriticalHitEffect extends AbstractEffect implements IPublishSubscri
       });
 
       client.emit('reactivate-effect', CriticalHitEffect.EFFECT_NAME);
-      return this.effectUtil.getEffects(userUuid);
+      return this.effectUtil.getAvailableEffects(userUuid);
 
     } catch (err) {
       console.error(err);

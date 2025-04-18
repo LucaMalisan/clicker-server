@@ -34,7 +34,7 @@ export class AsyncGenEffect extends AbstractEffect implements IPublishSubscribe 
       }
 
       let userEffect = await this.effectService.findByEffectName(AsyncGenEffect.EFFECT_NAME, userUuid);
-      let newEntry = await this.effectUtil.updateDatabase(AsyncGenEffect.EFFECT_NAME, userUuid, userEffect);
+      let newEntry = await this.effectUtil.updateDatabase(AsyncGenEffect.EFFECT_NAME, userUuid, userUuid, userEffect);
 
       if (userEffect) {
         this.effectUtil.clearOldInterval(userEffect);
@@ -55,7 +55,7 @@ export class AsyncGenEffect extends AbstractEffect implements IPublishSubscribe 
       Variables.userEffectIntervals.set(newEntry.uuid, newInterval);
 
       client.emit('reactivate-effect', AsyncGenEffect.EFFECT_NAME);
-      return this.effectUtil.getEffects(userUuid);
+      return this.effectUtil.getAvailableEffects(userUuid);
     } catch (err) {
       console.error(err);
     }
