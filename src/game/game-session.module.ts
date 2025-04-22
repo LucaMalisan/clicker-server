@@ -8,17 +8,22 @@ import { UsersModule } from '../users/users.module';
 import { UserGameSession } from '../model/userGameSession.entity';
 import { EffectsModule } from './effects/effect.module';
 import { PointsModule } from './points/points.module';
+import { EffectService } from './effects/effect.service';
+import { UserPurchasedEffects } from '../model/userPurchasedEffects.entity';
+import { UserActiveEffects } from '../model/userActiveEffects.entity';
+import { Effect } from '../model/effect.entity';
+import { EffectDetail } from '../model/effectDetail.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(configService.getTypeOrmConfig()),
-    TypeOrmModule.forFeature([GameSession, UserGameSession]),
+    TypeOrmModule.forFeature([GameSession, UserGameSession, Effect, EffectDetail, UserPurchasedEffects, UserActiveEffects]),
     UsersModule,
     GameSessionModule,
     EffectsModule,
     PointsModule,
   ],
-  providers: [GameSessionService, GameSessionGateway],
+  providers: [GameSessionService, GameSessionGateway, EffectService],
   exports: [GameSessionService],
 })
 
