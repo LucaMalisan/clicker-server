@@ -124,4 +124,9 @@ export class EffectService {
         })
       .execute();
   }
+
+  async clearUserEffectTables() {
+    await this.userActiveEffectRepo.clear();
+    await this.userPurchasedEffectRepo.clear();
+  }
 }

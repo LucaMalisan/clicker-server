@@ -10,6 +10,7 @@ import { GameSessionService } from './game-session.service';
 import { GameSession } from '../model/gameSession.entity';
 import * as crypto from 'node:crypto';
 import { UserGameSession } from 'src/model/userGameSession.entity';
+import { EffectService } from './effects/effect.service';
 
 interface ISessionInfo {
   sessionKey: string,
@@ -22,7 +23,8 @@ export class GameSessionGateway {
 
   protected readyClients: String[] = [];
 
-  constructor(private gameSessionService: GameSessionService) {
+  constructor(private gameSessionService: GameSessionService,
+              private effectService: EffectService) {
   }
 
   /**
@@ -108,6 +110,12 @@ export class GameSessionGateway {
       socket.emit('stop-session', '');
     }
     gameSession.endedAt = new Date(Date.now());
+    this.effectService.clearUserEffectTables();
+
+    Variables.userEffectIntervals.forEach((interval, key) => {
+      clearInterval(interval);
+    });
+
     await this.gameSessionService.save(gameSession);
     this.readyClients = [];
 
@@ -150,7 +158,14 @@ export class GameSessionGateway {
         });
     } catch (err) {
       console.error(`Caught error: ${err}`);
-      return err.message;
+
+      let response: ISessionInfo = {
+        sessionKey: '',
+        joinedPlayers: [],
+        admin: false,
+      };
+
+      return JSON.stringify(response);
     }
   }
 
