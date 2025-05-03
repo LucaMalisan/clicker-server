@@ -42,7 +42,6 @@ export class ReverseEngineeredEffect extends AbstractEffect {
         throw new Error('Could not find game session');
       }
 
-      //TODO should user be choosable?
       let randomUser = await this.gameSessionService.findAnyButNotCurrentUser(userUuid, gameSession.gameSessionUuid);
 
       if (!randomUser) {
