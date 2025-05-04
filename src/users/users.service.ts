@@ -18,6 +18,14 @@ export class UsersService {
     });
   }
 
+  async findByUuid(uuid: string): Promise<User | null> {
+    return this.repo.findOne({
+      where: {
+        uuid: uuid,
+      },
+    });
+  }
+
   async createIfNotExists(payload: any) {
     let result = await this.repo
       .createQueryBuilder()

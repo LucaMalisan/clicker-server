@@ -45,15 +45,14 @@ export class ChatGateway {
       }
 
       this.gameSessionService.findOneByUserUuid(userUuid)
-        .then((userGameSession: UserGameSession) => {
-          let chatMessage = new ChatMessage();
-          chatMessage.content = data;
-          chatMessage.gameSessionUuid = userGameSession.gameSession.uuid;
-          chatMessage.writtenByUuid = userUuid;
-          return this.chatService.save(chatMessage);
-        })
-        .then((chatMessage: ChatMessage[]) => {
-          let user = chatMessage[0].writtenBy;
+        .then((userGameSession: UserGameSession) =>
+          this.chatService.save({
+            content: data,
+            gameSessionUuid: userGameSession.gameSession.uuid,
+            writtenByUuid: userUuid,
+          }))
+        .then(async (chatMessage: ChatMessage) => {
+          let user = await this.userService.findByUuid(chatMessage.writtenByUuid) as User;
 
           if (!user?.userName) {
             throw new Error('could not read username');

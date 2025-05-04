@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { GameSession } from './gameSession.entity';
+import { Effect } from './effect.entity';
 
 @Entity({ name: 'chat_message' })
 export class ChatMessage {
@@ -20,11 +21,10 @@ export class ChatMessage {
   content: string;
 
   @ManyToOne(() => User, { eager: true })
-  @JoinColumn({ name: 'written_by' })
   writtenBy?: User;
 
-  @Column({ name: 'written_by'})
-  writtenByUuid?: User["uuid"];
+  @Column()
+  writtenByUuid: User["uuid"];
 
   @ManyToOne(() => GameSession)
   gameSession: GameSession;
