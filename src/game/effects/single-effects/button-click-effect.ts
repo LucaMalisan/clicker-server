@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { Variables } from '../../../static/variables';
 import { GameSessionService } from '../../game-session.service';
-import { UserGameSession } from '../../../model/userGameSession.entity';
 import { IPublishSubscribe } from '../IPublishSubscribe';
 import * as console from 'node:console';
 
