@@ -42,7 +42,7 @@ export class UserGameSession {
   maxVirus: number; //current max of virus user can have
 
   @Column({ type: 'int', nullable: true })
-  earlyExit: boolean; //user is not allowed to re-join, e.g. because of expulsion
+  offline: boolean;
 
   @UpdateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
