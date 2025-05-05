@@ -20,7 +20,7 @@ export class PopupinatorEffect extends AbstractEffect {
     super();
   }
 
-  @SubscribeMessage('start-replication')
+  @SubscribeMessage('start-popupinator')
   public async execute(@ConnectedSocket() client: Socket) {
     try {
       let userUuid = Variables.getUserUuidBySocket(client) as string;
@@ -51,6 +51,7 @@ export class PopupinatorEffect extends AbstractEffect {
       let socket = Variables.sockets.get(randomUser.userUuid as string);
 
       const interval = setRandomInterval(() => {
+        console.log('show popup');
         socket?.emit('show-popup');
       }, 1000, 5000);
 

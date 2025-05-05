@@ -22,8 +22,9 @@ import { UsersService } from '../../users/users.service';
 import { UserPurchasedEffects } from '../../model/userPurchasedEffects.entity';
 import { UserActiveEffects } from '../../model/userActiveEffects.entity';
 import { EffectLogActor } from './effectLog.actor';
+import { PopupinatorEffect } from './single-effects/popupinator-effect.service';
 
-const effects = [AsyncGenEffect, ButtonClickEffect, CriticalHitEffect, ReplicationEffect, ReverseEngineeredEffect]; // Liste aller Effekte
+const effects = [AsyncGenEffect, ButtonClickEffect, CriticalHitEffect, ReplicationEffect, ReverseEngineeredEffect, PopupinatorEffect]; // Liste aller Effekte
 
 @Module({
   imports: [
