@@ -22,4 +22,15 @@ export class ChatService {
 
     return result.raw[0] as ChatMessage;
   }
+
+  async findByGameSession(gameSessionUuid: string): Promise<ChatMessage[]> {
+    return this.repo.find({
+      where: {
+        gameSessionUuid: gameSessionUuid,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
 }

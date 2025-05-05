@@ -6,11 +6,13 @@ import {
 } from '@nestjs/websockets';
 import { AuthService } from './auth.service';
 import { Socket } from 'socket.io';
+import { UsersService } from '../users/users.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class AuthGateway {
 
-  constructor(private authService: AuthService) {
+  constructor(private authService: AuthService,
+              private userService: UsersService) {
   }
 
   /**
@@ -23,6 +25,12 @@ export class AuthGateway {
     let registerDto = JSON.parse(user);
 
     try {
+      let alreadyExistingUser = await this.userService.findOne(registerDto?.userName?.trim());
+
+      if (alreadyExistingUser) {
+        throw new Error('User with this username already exists');
+      }
+
       await this.authService.register(registerDto.userName, registerDto.password);
       client.emit('registration-successful', '');
     } catch (err) {

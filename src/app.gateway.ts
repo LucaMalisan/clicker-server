@@ -9,6 +9,7 @@ import { AuthService } from './auth/auth.service';
 import { Variables } from './static/variables';
 import { UsersService } from './users/users.service';
 import { User } from './model/user.entity';
+import { GameSessionService } from './game/game-session.service';
 
 interface Tokens {
   jwt: string,
@@ -25,7 +26,8 @@ export class AppGateway {
 
   constructor(private jwtService: JwtService,
               private authService: AuthService,
-              private usersService: UsersService) {
+              private usersService: UsersService,
+              private gameSessionService: GameSessionService) {
   }
 
   /**
@@ -55,6 +57,7 @@ export class AppGateway {
     }
 
     let decoded: any = this.jwtService.decode(jwt);
+    console.log(decoded);
     await this.usersService.findOne(decoded.username)
       .then((user: User) => {
         Variables.sockets.set(user.uuid, client);
@@ -64,5 +67,10 @@ export class AppGateway {
 
     let response: Response = { success: true, jwt: jwt };
     return JSON.stringify(response);
+  }
+
+  @SubscribeMessage('player-offline') async handlePlayerOffline(@ConnectedSocket() client: Socket): Promise<any> {
+    let userUuid = Variables.getUserUuidBySocket(client) as string;
+    this.gameSessionService.setPlayerOffline(userUuid, true);
   }
 }
