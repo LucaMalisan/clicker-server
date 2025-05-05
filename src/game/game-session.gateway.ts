@@ -44,7 +44,7 @@ export class GameSessionGateway {
 
       let parsedDuration = parseInt(duration);
 
-      if (parsedDuration <= 0) {
+      if (parsedDuration <= 0 || isNaN(parsedDuration) || !Number.isInteger(parsedDuration)) {
         throw new Error('Duration must be greater than 0');
       }
 
@@ -178,11 +178,15 @@ export class GameSessionGateway {
         throw new Error('could not read user uuid');
       }
 
+      if (!key) {
+        throw new Error('key is empty');
+      }
+
       this.gameSessionService.findOneByKey(key)
         .then((gameSession: GameSession) => {
           if (!gameSession) {
             console.error(`could not find game session`);
-            Promise.resolve();
+            throw new Error('could not find game session');
           }
 
           return this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid);
@@ -194,9 +198,11 @@ export class GameSessionGateway {
           for (let socket of Variables.sockets.values()) {
             socket.emit('player-joined', user?.userName);
           }
-        });
+        })
+        .catch(err => console.error(`caught error: ${err}`));
     } catch (err) {
       console.error(`caught error: ${err}`);
+      return err.message;
     }
   }
 
