@@ -57,10 +57,11 @@ export class AppGateway {
     }
 
     let decoded: any = this.jwtService.decode(jwt);
-    console.log(decoded);
+
     await this.usersService.findOne(decoded.username)
       .then((user: User) => {
         Variables.sockets.set(user.uuid, client);
+        this.gameSessionService.setPlayerOffline(user.uuid, false);
       })
       .catch(err => console.error(`Caught error: ${err}`));
 

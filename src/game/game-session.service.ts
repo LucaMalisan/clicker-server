@@ -82,6 +82,7 @@ export class GameSessionService {
     return this.userGameSessionRepo.find({
       where: {
         gameSessionUuid: sessionUuid,
+        offline: false,
       },
     });
   }
@@ -90,6 +91,7 @@ export class GameSessionService {
     return this.userGameSessionRepo.find({
       where: {
         gameSessionUuid: uuid,
+        offline: false,
       },
     });
   }
@@ -98,7 +100,9 @@ export class GameSessionService {
     return this.userGameSessionRepo
       .createQueryBuilder()
       .select()
-      .where('UserGameSession.gameSessionUuid = :gameSessionUuid AND UserGameSession.userUuid != :userUuid', {
+      .where('UserGameSession.gameSessionUuid = :gameSessionUuid ' +
+        'AND UserGameSession.userUuid != :userUuid' +
+        'AND UserGameSession.offline = false', {
         gameSessionUuid: gameSessionUuid,
         userUuid: userUuid,
       })
@@ -106,10 +110,7 @@ export class GameSessionService {
   }
 
   async setPlayerOffline(userUuid: string, offline: boolean) {
-    /* return this.userGameSessionRepo
-       .update({ offline: offline },
-         {           userUuid: userUuid,
-           },
-         }); */
+    return this.userGameSessionRepo
+      .update({ userUuid: userUuid }, { offline: offline });
   }
 }
