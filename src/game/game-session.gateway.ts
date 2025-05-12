@@ -95,8 +95,8 @@ export class GameSessionGateway {
           socket.emit('start-timer', duration);
         }
 
-        clearTimeout(Variables.sessionTimerInterval);
-        Variables.sessionTimerInterval = setTimeout(async () => this.stopGameSession(gameSession), duration);
+        clearTimeout(Variables.sessionTimerIntervals.get(gameSession.uuid));
+        Variables.sessionTimerIntervals.set(gameSession.uuid, setTimeout(async () => this.stopGameSession(gameSession), duration));
       }
     } catch (err) {
       console.error(`caught error: ${err}`);
