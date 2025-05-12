@@ -18,7 +18,7 @@ export class GameSessionService {
     return this.gameSessionRepo.save([gameSession]);
   }
 
-  async create(payload) {
+  async create(payload: any): Promise<GameSession> {
     let result = await this.gameSessionRepo
       .createQueryBuilder()
       .insert()
@@ -59,11 +59,21 @@ export class GameSessionService {
     return this.userGameSessionRepo
       .createQueryBuilder('userGameSession')
       .innerJoinAndSelect('userGameSession.gameSession', 'gs', 'gs.endedAt IS NULL')
-      .where('userGameSession.userUuid = :uuid', { uuid: uuid })
+      .where('userGameSession.userUuid = :uuid AND offline = false', { uuid: uuid })
       .getOne();
   }
 
   async assignUserToSession(userUuid: string, sessionUuid: string): Promise<UserGameSession | null> {
+    await this.userGameSessionRepo
+      .createQueryBuilder()
+      .update(UserGameSession)
+      .set({ offline: true })
+      .where('userUuid = :userUuid AND gameSessionUuid != :sessionUuid', {
+        userUuid: userUuid,
+        sessionUuid: sessionUuid,
+      })
+      .execute();
+
     let result = await this.userGameSessionRepo
       .createQueryBuilder()
       .insert()

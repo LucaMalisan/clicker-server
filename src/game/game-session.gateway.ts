@@ -54,6 +54,7 @@ export class GameSessionGateway {
         hexCode: `#${crypto.randomBytes(4).toString('hex')}`,
       });
 
+      console.log('created game session: ' + gameSession.hexCode);
       client.emit('session-creation-successful', gameSession.hexCode);
 
     } catch (err) {
@@ -182,24 +183,21 @@ export class GameSessionGateway {
         throw new Error('key is empty');
       }
 
-      this.gameSessionService.findOneByKey(key)
-        .then((gameSession: GameSession) => {
-          if (!gameSession) {
-            console.error(`could not find game session`);
-            throw new Error('could not find game session');
-          }
+      let gameSession = await this.gameSessionService.findOneByKey(key);
 
-          return this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid);
-        })
-        .then(userGameSession => {
-          client.emit('join-successful', '');
+      if (!gameSession) {
+        throw new Error('could not find game session');
+      }
 
-          let user = userGameSession?.user;
-          for (let socket of Variables.sockets.values()) {
-            socket.emit('player-joined', user?.userName);
-          }
-        })
-        .catch(err => console.error(`caught error: ${err}`));
+
+      let userGameSession = await this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid);
+      client.emit('join-successful', '');
+
+      let user = userGameSession?.user;
+      for (let socket of Variables.sockets.values()) {
+        socket.emit('player-joined', user?.userName);
+      }
+
     } catch (err) {
       console.error(`caught error: ${err}`);
       return err.message;
