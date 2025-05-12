@@ -10,6 +10,7 @@ import { Variables } from './static/variables';
 import { UsersService } from './users/users.service';
 import { User } from './model/user.entity';
 import { GameSessionService } from './game/game-session.service';
+import { GameSession } from './model/gameSession.entity';
 
 interface Tokens {
   jwt: string,
@@ -81,8 +82,21 @@ export class AppGateway {
   @SubscribeMessage('player-online')
   async handlePlayerOnline(@ConnectedSocket() client: Socket, @MessageBody() hexCode: string): Promise<any> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
-    let gameSession = await this.gameSessionService.findOneByKey(hexCode);
-    await this.gameSessionService.setPlayerOffline(userUuid, false, gameSession?.uuid ?? '');
-    return hexCode;
+    let gameSessionUuid: string | undefined;
+    let resultingHexCode: string | undefined = hexCode;
+
+    if (hexCode) {
+      let gameSession = await this.gameSessionService.findOneByKey(hexCode);
+      gameSessionUuid = gameSession?.uuid;
+    } else {
+      let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
+      gameSessionUuid = userGameSession?.gameSessionUuid;
+      resultingHexCode = userGameSession?.gameSession.hexCode;
+    }
+
+    console.log(resultingHexCode);
+
+    await this.gameSessionService.setPlayerOffline(userUuid, false, gameSessionUuid ?? '');
+    return resultingHexCode;
   }
 }
