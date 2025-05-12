@@ -1,9 +1,4 @@
-import {
-  ConnectedSocket,
-  MessageBody,
-  SubscribeMessage,
-  WebSocketGateway,
-} from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
 import { Variables } from '../static/variables';
 import { Socket } from 'socket.io';
 import { GameSessionService } from './game-session.service';
@@ -99,7 +94,9 @@ export class GameSessionGateway {
         for (let socket of Variables.sockets.values()) {
           socket.emit('start-timer', duration);
         }
-        setTimeout(async () => this.stopGameSession(gameSession), gameSession.duration);
+
+        clearTimeout(Variables.sessionTimerInterval);
+        Variables.sessionTimerInterval = setTimeout(async () => this.stopGameSession(gameSession), duration);
       }
     } catch (err) {
       console.error(`caught error: ${err}`);
@@ -142,7 +139,6 @@ export class GameSessionGateway {
       return await this.gameSessionService.findOneByUserUuid(userUuid)
         .then(userGameSession => userGameSession?.gameSession)
         .then(async gameSession => {
-          console.log("gameSession found: " + gameSession)
           let assignedUsers: UserGameSession[] = await this.gameSessionService.findAssignedUsers(gameSession ? gameSession.uuid : '');
           return { assignedUsers: assignedUsers?.map(e => e.user?.userName), gameSession: gameSession };
         })

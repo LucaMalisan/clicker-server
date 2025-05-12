@@ -8,6 +8,8 @@ export class Variables {
 
   public static userEffectIntervals: Map<String, NodeJS.Timeout> = new Map();
 
+  public static sessionTimerInterval: NodeJS.Timeout;
+
   public static getUserUuidBySocket(socket: Socket): String {
     for (let [key, value] of this.sockets.entries()) {
       if (value === socket) {
