@@ -20,7 +20,7 @@ export class LeaderboardActor {
 
     for (let gameSession of activeGameSessions) {
       let userGameSessions = await this.gameSessionService.findBySessionUuid(gameSession.uuid);
-      userGameSessions = userGameSessions ? userGameSessions : [];
+      userGameSessions = userGameSessions ??  [];
 
       let leaderBoardEntries = userGameSessions
         .sort((a, b) => (a.points > b.points) ? -1 : 1)

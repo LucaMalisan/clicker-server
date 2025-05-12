@@ -62,7 +62,7 @@ export class ChatGateway {
             message: data,
             username: user?.userName,
           };
-          return iChatMessageResponse;
+          return [iChatMessageResponse];
         })
         .then(response => {
           let resp = JSON.stringify(response);
@@ -74,5 +74,30 @@ export class ChatGateway {
     } catch (err) {
       console.error(`caught error: ${err}`);
     }
+  }
+
+  @SubscribeMessage('get-chat-messages')
+  async handleGetChatMessages(@ConnectedSocket() client: Socket): Promise<string> {
+    let userUuid = Variables.getUserUuidBySocket(client) as string;
+
+    console.log("user uuid is: " + userUuid);
+    let gameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
+
+    if (!gameSession)
+      throw new Error('could not find game session');
+
+    let chatMessages = await this.chatService.findByGameSession(gameSession.gameSessionUuid);
+    let chatMessageDTOs: IChatMessageResponse[] = [];
+
+    for(let message of chatMessages) {
+      let user = await this.userService.findByUuid(message.writtenByUuid) as User;
+      let iChatMessageResponse: IChatMessageResponse = {
+        message: message.content,
+        username: user?.userName,
+      };
+      chatMessageDTOs.push(iChatMessageResponse);
+    }
+
+    return JSON.stringify(chatMessageDTOs);
   }
 }

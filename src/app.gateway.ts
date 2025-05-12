@@ -9,6 +9,7 @@ import { AuthService } from './auth/auth.service';
 import { Variables } from './static/variables';
 import { UsersService } from './users/users.service';
 import { User } from './model/user.entity';
+import { GameSessionService } from './game/game-session.service';
 
 interface Tokens {
   jwt: string,
@@ -25,7 +26,8 @@ export class AppGateway {
 
   constructor(private jwtService: JwtService,
               private authService: AuthService,
-              private usersService: UsersService) {
+              private usersService: UsersService,
+              private gameSessionService: GameSessionService) {
   }
 
   /**
@@ -34,7 +36,8 @@ export class AppGateway {
    * @param tokens jwt and refresh token
    */
 
-  @SubscribeMessage('register') async handleRegister(@ConnectedSocket() client: Socket, @MessageBody() tokens: string): Promise<string> {
+  @SubscribeMessage('register') async handleRegister(
+    @ConnectedSocket() client: Socket, @MessageBody() tokens: string): Promise<string> {
     let json: Tokens = JSON.parse(tokens);
     let jwt = json.jwt;
 
@@ -55,6 +58,7 @@ export class AppGateway {
     }
 
     let decoded: any = this.jwtService.decode(jwt);
+
     await this.usersService.findOne(decoded.username)
       .then((user: User) => {
         Variables.sockets.set(user.uuid, client);
@@ -64,5 +68,21 @@ export class AppGateway {
 
     let response: Response = { success: true, jwt: jwt };
     return JSON.stringify(response);
+  }
+
+  @SubscribeMessage('player-offline')
+  async handlePlayerOffline(@ConnectedSocket() client: Socket, @MessageBody() hexCode: string): Promise<any> {
+    let userUuid = Variables.getUserUuidBySocket(client) as string;
+    let gameSession = await this.gameSessionService.findOneByKey(hexCode);
+    await this.gameSessionService.setPlayerOffline(userUuid, true, gameSession?.uuid ?? '');
+    return hexCode;
+  }
+
+  @SubscribeMessage('player-online')
+  async handlePlayerOnline(@ConnectedSocket() client: Socket, @MessageBody() hexCode: string): Promise<any> {
+    let userUuid = Variables.getUserUuidBySocket(client) as string;
+    let gameSession = await this.gameSessionService.findOneByKey(hexCode);
+    await this.gameSessionService.setPlayerOffline(userUuid, false, gameSession?.uuid ?? '');
+    return hexCode;
   }
 }

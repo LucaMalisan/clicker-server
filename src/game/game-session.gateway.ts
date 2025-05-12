@@ -1,9 +1,4 @@
-import {
-  ConnectedSocket,
-  MessageBody,
-  SubscribeMessage,
-  WebSocketGateway,
-} from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
 import { Variables } from '../static/variables';
 import { Socket } from 'socket.io';
 import { GameSessionService } from './game-session.service';
@@ -44,7 +39,7 @@ export class GameSessionGateway {
 
       let parsedDuration = parseInt(duration);
 
-      if (parsedDuration <= 0) {
+      if (parsedDuration <= 0 || isNaN(parsedDuration) || !Number.isInteger(parsedDuration)) {
         throw new Error('Duration must be greater than 0');
       }
 
@@ -54,6 +49,7 @@ export class GameSessionGateway {
         hexCode: `#${crypto.randomBytes(4).toString('hex')}`,
       });
 
+      console.log('created game session: ' + gameSession.hexCode);
       client.emit('session-creation-successful', gameSession.hexCode);
 
     } catch (err) {
@@ -98,7 +94,9 @@ export class GameSessionGateway {
         for (let socket of Variables.sockets.values()) {
           socket.emit('start-timer', duration);
         }
-        setTimeout(async () => this.stopGameSession(gameSession), gameSession.duration);
+
+        clearTimeout(Variables.sessionTimerInterval);
+        Variables.sessionTimerInterval = setTimeout(async () => this.stopGameSession(gameSession), duration);
       }
     } catch (err) {
       console.error(`caught error: ${err}`);
@@ -178,25 +176,28 @@ export class GameSessionGateway {
         throw new Error('could not read user uuid');
       }
 
-      this.gameSessionService.findOneByKey(key)
-        .then((gameSession: GameSession) => {
-          if (!gameSession) {
-            console.error(`could not find game session`);
-            Promise.resolve();
-          }
+      if (!key) {
+        throw new Error('key is empty');
+      }
 
-          return this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid);
-        })
-        .then(userGameSession => {
-          client.emit('join-successful', '');
+      let gameSession = await this.gameSessionService.findOneByKey(key);
 
-          let user = userGameSession?.user;
-          for (let socket of Variables.sockets.values()) {
-            socket.emit('player-joined', user?.userName);
-          }
-        });
+      if (!gameSession) {
+        throw new Error('could not find game session');
+      }
+
+
+      let userGameSession = await this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid);
+      client.emit('join-successful', '');
+
+      let user = userGameSession?.user;
+      for (let socket of Variables.sockets.values()) {
+        socket.emit('player-joined', user?.userName);
+      }
+
     } catch (err) {
       console.error(`caught error: ${err}`);
+      return err.message;
     }
   }
 

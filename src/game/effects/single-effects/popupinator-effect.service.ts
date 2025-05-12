@@ -51,7 +51,6 @@ export class PopupinatorEffect extends AbstractEffect {
       let socket = Variables.sockets.get(randomUser.userUuid as string);
 
       const interval = setRandomInterval(() => {
-        console.log('show popup');
         socket?.emit('show-popup');
       }, 1000, 5000);
 

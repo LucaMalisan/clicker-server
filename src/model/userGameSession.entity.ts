@@ -24,13 +24,13 @@ export class UserGameSession {
   user?: User;
 
   @Column()
-  userUuid?: User["uuid"];
+  userUuid?: User['uuid'];
 
   @ManyToOne(() => GameSession, { eager: true })
   gameSession: GameSession;
 
   @Column()
-  gameSessionUuid: GameSession["uuid"];
+  gameSessionUuid: GameSession['uuid'];
 
   @Column({ type: 'int', nullable: false, default: 0 })
   points: number;
@@ -41,8 +41,8 @@ export class UserGameSession {
   @Column({ type: 'int', nullable: true })
   maxVirus: number; //current max of virus user can have
 
-  @Column({ type: 'int', nullable: true })
-  earlyExit: boolean; //user is not allowed to re-join, e.g. because of expulsion
+  @Column({ type: 'boolean', nullable: false, default: false })
+  offline: boolean;
 
   @UpdateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
