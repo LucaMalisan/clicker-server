@@ -119,8 +119,8 @@ export class GameSessionService {
       .getOne();
   }
 
-  async setPlayerOffline(userUuid: string, offline: boolean) {
+  async setPlayerOffline(userUuid: string, offline: boolean, gameSessionUuid: string) {
     return this.userGameSessionRepo
-      .update({ userUuid: userUuid }, { offline: offline });
+      .update({ userUuid: userUuid, gameSessionUuid: gameSessionUuid }, { offline: offline });
   }
 }

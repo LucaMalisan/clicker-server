@@ -142,6 +142,7 @@ export class GameSessionGateway {
       return await this.gameSessionService.findOneByUserUuid(userUuid)
         .then(userGameSession => userGameSession?.gameSession)
         .then(async gameSession => {
+          console.log("gameSession found: " + gameSession)
           let assignedUsers: UserGameSession[] = await this.gameSessionService.findAssignedUsers(gameSession ? gameSession.uuid : '');
           return { assignedUsers: assignedUsers?.map(e => e.user?.userName), gameSession: gameSession };
         })

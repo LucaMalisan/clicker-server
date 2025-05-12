@@ -79,6 +79,8 @@ export class ChatGateway {
   @SubscribeMessage('get-chat-messages')
   async handleGetChatMessages(@ConnectedSocket() client: Socket): Promise<string> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
+
+    console.log("user uuid is: " + userUuid);
     let gameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
 
     if (!gameSession)

@@ -36,7 +36,8 @@ export class AppGateway {
    * @param tokens jwt and refresh token
    */
 
-  @SubscribeMessage('register') async handleRegister(@ConnectedSocket() client: Socket, @MessageBody() tokens: string): Promise<string> {
+  @SubscribeMessage('register') async handleRegister(
+    @ConnectedSocket() client: Socket, @MessageBody() tokens: string): Promise<string> {
     let json: Tokens = JSON.parse(tokens);
     let jwt = json.jwt;
 
@@ -61,7 +62,6 @@ export class AppGateway {
     await this.usersService.findOne(decoded.username)
       .then((user: User) => {
         Variables.sockets.set(user.uuid, client);
-        this.gameSessionService.setPlayerOffline(user.uuid, false);
       })
       .catch(err => console.error(`Caught error: ${err}`));
 
@@ -70,8 +70,19 @@ export class AppGateway {
     return JSON.stringify(response);
   }
 
-  @SubscribeMessage('player-offline') async handlePlayerOffline(@ConnectedSocket() client: Socket): Promise<any> {
+  @SubscribeMessage('player-offline')
+  async handlePlayerOffline(@ConnectedSocket() client: Socket, @MessageBody() hexCode: string): Promise<any> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
-    this.gameSessionService.setPlayerOffline(userUuid, true);
+    let gameSession = await this.gameSessionService.findOneByKey(hexCode);
+    await this.gameSessionService.setPlayerOffline(userUuid, true, gameSession?.uuid ?? '');
+    return hexCode;
+  }
+
+  @SubscribeMessage('player-online')
+  async handlePlayerOnline(@ConnectedSocket() client: Socket, @MessageBody() hexCode: string): Promise<any> {
+    let userUuid = Variables.getUserUuidBySocket(client) as string;
+    let gameSession = await this.gameSessionService.findOneByKey(hexCode);
+    await this.gameSessionService.setPlayerOffline(userUuid, false, gameSession?.uuid ?? '');
+    return hexCode;
   }
 }
