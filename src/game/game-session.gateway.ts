@@ -6,6 +6,7 @@ import { GameSession } from '../model/gameSession.entity';
 import * as crypto from 'node:crypto';
 import { UserGameSession } from 'src/model/userGameSession.entity';
 import { EffectService } from './effects/effect.service';
+import { UsersService } from '../users/users.service';
 
 interface ISessionInfo {
   sessionKey: string,
@@ -19,7 +20,8 @@ export class GameSessionGateway {
   protected readyClients: String[] = [];
 
   constructor(private gameSessionService: GameSessionService,
-              private effectService: EffectService) {
+              private effectService: EffectService,
+              protected userService: UsersService) {
   }
 
   /**
@@ -53,6 +55,7 @@ export class GameSessionGateway {
       client.emit('session-creation-successful', gameSession.hexCode);
 
     } catch (err) {
+      console.error('create-session');
       console.error(`Caught error: ${err}`);
       return err.message;
     }
@@ -136,26 +139,24 @@ export class GameSessionGateway {
         throw new Error('could not read user uuid');
       }
 
-      return await this.gameSessionService.findOneByUserUuid(userUuid)
-        .then(userGameSession => userGameSession?.gameSession)
-        .then(async gameSession => {
-          console.log("joined to game session: " + gameSession?.uuid)
-          let assignedUsers: UserGameSession[] = await this.gameSessionService.findAssignedUsers(gameSession ? gameSession.uuid : '');
-          return { assignedUsers: assignedUsers?.map(e => e.user?.userName), gameSession: gameSession };
-        })
-        .then(json => {
-          let gameSession = json.gameSession;
-          let assignedUsers = json.assignedUsers;
+      let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
+      let gameSession = await this.gameSessionService.findOneByUuid(userGameSession?.gameSessionUuid ?? '');
 
-          let response: ISessionInfo = {
-            sessionKey: gameSession ? gameSession.hexCode : '',
-            joinedPlayers: assignedUsers,
-            admin: gameSession?.createdByUuid === userUuid,
-          };
+      if(!userGameSession || !gameSession){
+        throw new Error("could not find game session");
+      }
 
-          return JSON.stringify(response);
-        });
+      let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession.uuid);
+
+      let response: ISessionInfo = {
+        sessionKey: gameSession ? gameSession.hexCode : '',
+        joinedPlayers: assignedUsers.map(e => e.user?.userName),
+        admin: gameSession?.createdByUuid === userUuid,
+      };
+
+      return JSON.stringify(response);
     } catch (err) {
+      console.error('get-session-info');
       console.error(`Caught error: ${err}`);
 
       let response: ISessionInfo = {
@@ -177,23 +178,29 @@ export class GameSessionGateway {
         throw new Error('could not read user uuid');
       }
 
-      if (!key) {
-        throw new Error('key is empty');
+      let gameSessionUuid: string | undefined;
+
+      if (key) {
+        let gameSession = await this.gameSessionService.findOneByKey(key);
+        gameSessionUuid = gameSession?.uuid;
+      } else {
+        let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
+        gameSessionUuid = userGameSession?.gameSessionUuid;
       }
 
-      let gameSession = await this.gameSessionService.findOneByKey(key);
-
-      if (!gameSession) {
+      if (!gameSessionUuid) {
         throw new Error('could not find game session');
       }
 
-
-      let userGameSession = await this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid);
+      await this.gameSessionService.assignUserToSession(userUuid, gameSessionUuid);
       client.emit('join-successful', '');
 
-      let user = userGameSession?.user;
-      for (let socket of Variables.sockets.values()) {
-        socket.emit('player-joined', user?.userName);
+      let joinedUser = await this.userService.findByUuid(userUuid);
+      let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSessionUuid);
+
+      for (let user of assignedUsers) {
+        let socket = Variables.sockets.get(user.uuid ?? '');
+        socket?.emit('player-joined', joinedUser?.userName);
       }
 
     } catch (err) {

@@ -55,6 +55,14 @@ export class GameSessionService {
     });
   }
 
+  async findOneByUuid(uuid: string): Promise<GameSession | null> {
+    return this.gameSessionRepo.findOne({
+      where: {
+        uuid: uuid,
+      },
+    });
+  }
+
   async findOneByUserUuid(uuid: string): Promise<UserGameSession | null> {
     return this.userGameSessionRepo
       .createQueryBuilder('userGameSession')
