@@ -142,8 +142,8 @@ export class GameSessionGateway {
       let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
       let gameSession = await this.gameSessionService.findOneByUuid(userGameSession?.gameSessionUuid ?? '');
 
-      if(!userGameSession || !gameSession){
-        throw new Error("could not find game session");
+      if (!userGameSession || !gameSession) {
+        throw new Error('could not find game session');
       }
 
       let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession.uuid);
@@ -199,7 +199,8 @@ export class GameSessionGateway {
       let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSessionUuid);
 
       for (let user of assignedUsers) {
-        let socket = Variables.sockets.get(user.uuid ?? '');
+        let socket = Variables.sockets.get(user.userUuid ?? '');
+        console.log(socket);
         socket?.emit('player-joined', joinedUser?.userName);
       }
 
