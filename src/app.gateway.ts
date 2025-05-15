@@ -65,7 +65,7 @@ export class AppGateway {
       .then((user: User) => {
         Variables.sockets.set(user.uuid, client);
       })
-      .catch(err => console.error(`register: Caught error: ${err}`));
+      .catch(err => console.error(`Caught error: ${err}`));
 
 
     let response: Response = { success: true, jwt: jwt };

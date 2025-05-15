@@ -55,7 +55,6 @@ export class GameSessionGateway {
       client.emit('session-creation-successful', gameSession.hexCode);
 
     } catch (err) {
-      console.error('create-session');
       console.error(`Caught error: ${err}`);
       return err.message;
     }
@@ -177,7 +176,6 @@ export class GameSessionGateway {
 
       return JSON.stringify(response);
     } catch (err) {
-      console.error('get-session-info');
       console.error(`Caught error: ${err}`);
 
       let response: ISessionInfo = {
