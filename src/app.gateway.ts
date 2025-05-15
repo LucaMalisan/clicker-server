@@ -10,7 +10,6 @@ import { Variables } from './static/variables';
 import { UsersService } from './users/users.service';
 import { User } from './model/user.entity';
 import { GameSessionService } from './game/game-session.service';
-import { GameSession } from './model/gameSession.entity';
 
 interface Tokens {
   jwt: string,
@@ -75,20 +74,14 @@ export class AppGateway {
   @SubscribeMessage('player-offline')
   async handlePlayerOffline(@ConnectedSocket() client: Socket, @MessageBody() hexCode: string): Promise<any> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
-    let gameSessionUuid;
+    let gameSession = await this.gameSessionService.findOneByKey(hexCode);
 
-    if (hexCode) {
-      let gameSession = await this.gameSessionService.findOneByKey(hexCode);
-      gameSessionUuid = gameSession?.uuid;
-    } else {
-      let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
-      gameSessionUuid = userGameSession?.gameSessionUuid;
+    if (!gameSession) {
+      throw new Error('No active game session found');
     }
 
-    let gameSession = await this.gameSessionService.findOneByUuid(gameSessionUuid);
-
-    if(!gameSession) {
-      throw new Error("No active game session found");
+    if (!userUuid) {
+      throw new Error('user uuid could not be found');
     }
 
     await this.gameSessionService.setPlayerOffline(userUuid, true, gameSession?.uuid ?? '');
@@ -98,21 +91,15 @@ export class AppGateway {
   @SubscribeMessage('player-online')
   async handlePlayerOnline(@ConnectedSocket() client: Socket, @MessageBody() hexCode: string): Promise<any> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
-    let gameSessionUuid: string | undefined;
-    let resultingHexCode: string | undefined = hexCode;
+    let gameSession = await this.gameSessionService.findOneByKey(hexCode);
 
-    if (hexCode) {
-      let gameSession = await this.gameSessionService.findOneByKey(hexCode);
-      gameSessionUuid = gameSession?.uuid;
-    } else {
-      let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
-      gameSessionUuid = userGameSession?.gameSessionUuid;
-      resultingHexCode = userGameSession?.gameSession.hexCode;
+    if (!userUuid) {
+      throw new Error('user uuid could not be found');
     }
 
-    if (gameSessionUuid) {
-      await this.gameSessionService.setPlayerOffline(userUuid, false, gameSessionUuid);
-      return resultingHexCode;
+    if (gameSession) {
+      await this.gameSessionService.setPlayerOffline(userUuid, false, gameSession.uuid);
+      return hexCode;
     }
     return '';
   }

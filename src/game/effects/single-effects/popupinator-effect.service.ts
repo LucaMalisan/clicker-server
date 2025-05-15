@@ -1,5 +1,5 @@
 import { AbstractEffect } from '../abstract-effect';
-import { ConnectedSocket, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { Variables } from '../../../static/variables';
@@ -21,7 +21,7 @@ export class PopupinatorEffect extends AbstractEffect {
   }
 
   @SubscribeMessage('start-popupinator')
-  public async execute(@ConnectedSocket() client: Socket) {
+  public async execute(@ConnectedSocket() client: Socket, @MessageBody() sessionKey: string) {
     try {
       let userUuid = Variables.getUserUuidBySocket(client) as string;
 
@@ -36,7 +36,7 @@ export class PopupinatorEffect extends AbstractEffect {
         throw new Error('Couldn\'t create or update userEffect entry');
       }
 
-      let gameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
+      let gameSession = await this.gameSessionService.findOneByUserUuidAndKey(userUuid, sessionKey);
 
       if (!gameSession) {
         throw new Error('Could not find game session');

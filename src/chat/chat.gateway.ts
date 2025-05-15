@@ -18,6 +18,12 @@ interface IChatMessageResponse {
   message: string;
 }
 
+
+interface IChatMessage {
+  value: string;
+  sessionKey: string;
+}
+
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway {
 
@@ -35,7 +41,6 @@ export class ChatGateway {
 
   @SubscribeMessage('chat-message')
   handleChatMessage(@ConnectedSocket() client: Socket, @MessageBody() data: string): void {
-    data = data.replaceAll('"', '');
 
     let userUuid = Variables.getUserUuidBySocket(client) as string;
 
@@ -44,10 +49,12 @@ export class ChatGateway {
         throw new Error('user uuid could not be found');
       }
 
-      this.gameSessionService.findOneByUserUuid(userUuid)
+      let json: IChatMessage = JSON.parse(data);
+
+      this.gameSessionService.findOneByUserUuidAndKey(userUuid, json.sessionKey)
         .then((userGameSession: UserGameSession) =>
           this.chatService.save({
-            content: data,
+            content: json.value,
             gameSessionUuid: userGameSession.gameSession.uuid,
             writtenByUuid: userUuid,
           }))
@@ -59,7 +66,7 @@ export class ChatGateway {
           }
 
           let iChatMessageResponse: IChatMessageResponse = {
-            message: data,
+            message: json.value,
             username: user?.userName,
           };
           return [iChatMessageResponse];
@@ -77,11 +84,11 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('get-chat-messages')
-  async handleGetChatMessages(@ConnectedSocket() client: Socket): Promise<string> {
+  async handleGetChatMessages(@ConnectedSocket() client: Socket, @MessageBody() sessionKey: string): Promise<string> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
 
-    console.log("user uuid is: " + userUuid);
-    let gameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
+    console.log('user uuid is: ' + userUuid);
+    let gameSession = await this.gameSessionService.findOneByUserUuidAndKey(userUuid, sessionKey);
 
     if (!gameSession)
       throw new Error('could not find game session');
@@ -89,7 +96,7 @@ export class ChatGateway {
     let chatMessages = await this.chatService.findByGameSession(gameSession.gameSessionUuid);
     let chatMessageDTOs: IChatMessageResponse[] = [];
 
-    for(let message of chatMessages) {
+    for (let message of chatMessages) {
       let user = await this.userService.findByUuid(message.writtenByUuid) as User;
       let iChatMessageResponse: IChatMessageResponse = {
         message: message.content,

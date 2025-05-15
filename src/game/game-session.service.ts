@@ -63,14 +63,6 @@ export class GameSessionService {
     });
   }
 
-  async findOneByUserUuid(uuid: string): Promise<UserGameSession | null> {
-    return this.userGameSessionRepo
-      .createQueryBuilder('userGameSession')
-      .innerJoinAndSelect('userGameSession.gameSession', 'gs', 'gs.endedAt IS NULL')
-      .where('userGameSession.userUuid = :uuid AND offline = false', { uuid: uuid })
-      .getOne();
-  }
-
   async findOneByUserUuidAndKey(uuid: string, sessionKey: string): Promise<UserGameSession | null> {
     return this.userGameSessionRepo
       .createQueryBuilder('userGameSession')
