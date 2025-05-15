@@ -71,6 +71,14 @@ export class GameSessionService {
       .getOne();
   }
 
+  async findOneByUserUuidAndKey(uuid: string, sessionKey: string): Promise<UserGameSession | null> {
+    return this.userGameSessionRepo
+      .createQueryBuilder('userGameSession')
+      .innerJoinAndSelect('userGameSession.gameSession', 'gs')
+      .where('userGameSession.userUuid = :uuid AND gs.hexCode = :hexCode', { uuid: uuid, hexCode: sessionKey })
+      .getOne();
+  }
+
   async assignUserToSession(userUuid: string, sessionUuid: string): Promise<UserGameSession | null> {
     await this.userGameSessionRepo
       .createQueryBuilder()

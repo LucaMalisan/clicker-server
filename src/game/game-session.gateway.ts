@@ -69,7 +69,7 @@ export class GameSessionGateway {
    */
 
   @SubscribeMessage('ready-for-game-start')
-  async getConfirmationForGameStart(@ConnectedSocket() client: Socket): Promise<void> {
+  async getConfirmationForGameStart(@ConnectedSocket() client: Socket, @MessageBody() key): Promise<void> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
 
     try {
@@ -77,33 +77,54 @@ export class GameSessionGateway {
         throw new Error('user uuid could not be read');
       }
 
-      this.readyClients.push(userUuid);
-      let allClientsRegistered = Variables.sockets.size <= this.readyClients.length;
+      let userGameSession = await this.gameSessionService.findOneByUserUuidAndKey(userUuid, key);
+      let gameSession = userGameSession?.gameSession;
 
-      if (allClientsRegistered) {
-        let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
-        let gameSession = userGameSession?.gameSession;
-
-        if (!gameSession) {
-          throw new Error('could not find gameSession');
-        }
-
-        if (!gameSession.startedAt) {
-          gameSession.startedAt = new Date(Date.now());
-          await this.gameSessionService.save(gameSession);
-        }
-
-        let duration = gameSession.duration - (Date.now() - gameSession.startedAt.getTime());
-        for (let socket of Variables.sockets.values()) {
-          socket.emit('start-timer', duration);
-        }
-
-        clearTimeout(Variables.sessionTimerIntervals.get(gameSession.uuid));
-        Variables.sessionTimerIntervals.set(gameSession.uuid, setTimeout(async () => this.stopGameSession(gameSession), duration));
+      if (!userGameSession) {
+        throw new Error('user is not assigned to this game session');
       }
+
+      if (gameSession?.createdByUuid !== userUuid) {
+        throw new Error('user is not the creator of this game session');
+      }
+
+      if (!gameSession) {
+        throw new Error('could not find gameSession');
+      }
+
+      if (!gameSession.startedAt) {
+        gameSession.startedAt = new Date(Date.now());
+        await this.gameSessionService.save(gameSession);
+      }
+
+      for (let socket of Variables.sockets.values()) {
+        socket.emit('start-game');
+      }
+
+      clearTimeout(Variables.sessionTimerIntervals.get(gameSession.uuid));
+      Variables.sessionTimerIntervals.set(gameSession.uuid, setTimeout(async () => this.stopGameSession(gameSession), this.getRemainingDuration(gameSession)));
     } catch (err) {
       console.error(`caught error: ${err}`);
     }
+  }
+
+  @SubscribeMessage('get-remaining-duration')
+  async handleGetRemainingDuration(@ConnectedSocket() client: Socket, @MessageBody() key): Promise<String> {
+    let gameSession = await this.gameSessionService.findOneByKey(key);
+
+    if (!gameSession) {
+      throw new Error('could not find game session');
+    }
+
+    return this.getRemainingDuration(gameSession) + '';
+  }
+
+  protected getRemainingDuration(gameSession: GameSession): number {
+    if(!gameSession) {
+      return 0;
+    }
+
+    return gameSession.duration - (Date.now() - gameSession.startedAt.getTime());
   }
 
   protected async stopGameSession(gameSession: GameSession) {
@@ -169,6 +190,19 @@ export class GameSessionGateway {
     }
   }
 
+  @SubscribeMessage('is-session-join-allowed')
+  async isSessionJoinAllowed(@ConnectedSocket() client: Socket, @MessageBody() key: string): Promise<String> {
+    let userUuid = Variables.getUserUuidBySocket(client) as string;
+    let userGameSession = await this.gameSessionService.findOneByUserUuidAndKey(userUuid, key);
+
+    if (!userGameSession) {
+      return 'false';
+    }
+
+    let gameSession = await this.gameSessionService.findOneByUuid(userGameSession.gameSessionUuid);
+    return (gameSession && gameSession.startedAt != null && gameSession.endedAt == null) + '';
+  }
+
   @SubscribeMessage('join-session')
   async handleSessionJoining(@ConnectedSocket() client: Socket, @MessageBody() key: string) {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
@@ -200,21 +234,12 @@ export class GameSessionGateway {
 
       for (let user of assignedUsers) {
         let socket = Variables.sockets.get(user.userUuid ?? '');
-        console.log(socket);
         socket?.emit('player-joined', joinedUser?.userName);
       }
 
     } catch (err) {
       console.error(`caught error: ${err}`);
       return err.message;
-    }
-  }
-
-  //TODO provide generic replay function for just replaying
-  @SubscribeMessage('start-game')
-  handleGameStart(): void {
-    for (let socket of Variables.sockets.values()) {
-      socket.emit('start-game');
     }
   }
 }

@@ -86,6 +86,11 @@ export class AppGateway {
     }
 
     let gameSession = await this.gameSessionService.findOneByUuid(gameSessionUuid);
+
+    if(!gameSession) {
+      throw new Error("No active game session found");
+    }
+
     await this.gameSessionService.setPlayerOffline(userUuid, true, gameSession?.uuid ?? '');
     return hexCode;
   }
