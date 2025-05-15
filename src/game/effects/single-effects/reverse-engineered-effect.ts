@@ -1,5 +1,5 @@
 import { AbstractEffect } from '../abstract-effect';
-import { ConnectedSocket, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { Variables } from '../../../static/variables';
@@ -28,7 +28,7 @@ export class ReverseEngineeredEffect extends AbstractEffect {
   }
 
   @SubscribeMessage('start-reverse-engineered')
-  public async execute(@ConnectedSocket() client: Socket) {
+  public async execute(@ConnectedSocket() client: Socket, @MessageBody() sessionKey: string) {
     try {
       let userUuid = Variables.getUserUuidBySocket(client) as string;
 
@@ -36,7 +36,7 @@ export class ReverseEngineeredEffect extends AbstractEffect {
         throw new Error('Could not read user uuid');
       }
 
-      let gameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
+      let gameSession = await this.gameSessionService.findOneByUserUuidAndKey(userUuid, sessionKey);
 
       if (!gameSession) {
         throw new Error('Could not find game session');

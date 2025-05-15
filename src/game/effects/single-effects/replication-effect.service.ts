@@ -1,5 +1,5 @@
 import { AbstractEffect } from '../abstract-effect';
-import { ConnectedSocket, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { Variables } from '../../../static/variables';
@@ -30,7 +30,7 @@ export class ReplicationEffect extends AbstractEffect implements IPublishSubscri
   }
 
   @SubscribeMessage('start-replication')
-  public async execute(@ConnectedSocket() client: Socket) {
+  public async execute(@ConnectedSocket() client: Socket, @MessageBody() sessionKey: string) {
     try {
       let userUuid = Variables.getUserUuidBySocket(client) as string;
 
