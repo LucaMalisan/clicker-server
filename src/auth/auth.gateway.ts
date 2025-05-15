@@ -54,6 +54,7 @@ export class AuthGateway {
 
       client.emit('login-successful', jwt);
     } catch (err) {
+      console.error("login-user");
       console.log(`Caught error: ${err}`);
       return err.message;
     }

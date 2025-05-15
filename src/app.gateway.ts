@@ -10,6 +10,7 @@ import { Variables } from './static/variables';
 import { UsersService } from './users/users.service';
 import { User } from './model/user.entity';
 import { GameSessionService } from './game/game-session.service';
+import { GameSession } from './model/gameSession.entity';
 
 interface Tokens {
   jwt: string,
@@ -51,6 +52,7 @@ export class AppGateway {
           throw new Error(err);
         }
       } catch (err) {
+        console.error('register');
         console.error(`Caught error: ${err}`);
         let response: Response = { success: false, jwt: jwt };
         return JSON.stringify(response);
@@ -73,7 +75,22 @@ export class AppGateway {
   @SubscribeMessage('player-offline')
   async handlePlayerOffline(@ConnectedSocket() client: Socket, @MessageBody() hexCode: string): Promise<any> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
-    let gameSession = await this.gameSessionService.findOneByKey(hexCode);
+    let gameSessionUuid;
+
+    if (hexCode) {
+      let gameSession = await this.gameSessionService.findOneByKey(hexCode);
+      gameSessionUuid = gameSession?.uuid;
+    } else {
+      let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
+      gameSessionUuid = userGameSession?.gameSessionUuid;
+    }
+
+    let gameSession = await this.gameSessionService.findOneByUuid(gameSessionUuid);
+
+    if(!gameSession) {
+      throw new Error("No active game session found");
+    }
+
     await this.gameSessionService.setPlayerOffline(userUuid, true, gameSession?.uuid ?? '');
     return hexCode;
   }
@@ -81,8 +98,22 @@ export class AppGateway {
   @SubscribeMessage('player-online')
   async handlePlayerOnline(@ConnectedSocket() client: Socket, @MessageBody() hexCode: string): Promise<any> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
-    let gameSession = await this.gameSessionService.findOneByKey(hexCode);
-    await this.gameSessionService.setPlayerOffline(userUuid, false, gameSession?.uuid ?? '');
-    return hexCode;
+    let gameSessionUuid: string | undefined;
+    let resultingHexCode: string | undefined = hexCode;
+
+    if (hexCode) {
+      let gameSession = await this.gameSessionService.findOneByKey(hexCode);
+      gameSessionUuid = gameSession?.uuid;
+    } else {
+      let userGameSession = await this.gameSessionService.findOneByUserUuid(userUuid);
+      gameSessionUuid = userGameSession?.gameSessionUuid;
+      resultingHexCode = userGameSession?.gameSession.hexCode;
+    }
+
+    if (gameSessionUuid) {
+      await this.gameSessionService.setPlayerOffline(userUuid, false, gameSessionUuid);
+      return resultingHexCode;
+    }
+    return '';
   }
 }
