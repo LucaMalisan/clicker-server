@@ -230,8 +230,6 @@ export class GameSessionGateway {
 
       for (let user of assignedUsers) {
         let socket = Variables.sockets.get(user.userUuid ?? '');
-
-        console.log('all users: " + ' + JSON.stringify(userNames));
         socket?.emit('player-joined', JSON.stringify(userNames));
       }
 
