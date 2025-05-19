@@ -118,9 +118,7 @@ export class GameSessionService {
     return this.userGameSessionRepo
       .createQueryBuilder()
       .select()
-      .where('UserGameSession.gameSessionUuid = :gameSessionUuid ' +
-        'AND UserGameSession.userUuid != :userUuid' +
-        'AND UserGameSession.offline = false', {
+      .where('UserGameSession.gameSessionUuid = :gameSessionUuid AND UserGameSession.userUuid != :userUuid AND UserGameSession.offline = false', {
         gameSessionUuid: gameSessionUuid,
         userUuid: userUuid,
       })

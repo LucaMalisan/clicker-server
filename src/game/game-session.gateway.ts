@@ -131,7 +131,9 @@ export class GameSessionGateway {
       socket.emit('stop-session', '');
     }
     gameSession.endedAt = new Date(Date.now());
-    this.effectService.clearUserEffectTables();
+
+    let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession.uuid);
+    this.effectService.clearUserEffectTables(assignedUsers.map(e => e.userUuid ?? ''));
 
     Variables.userEffectIntervals.forEach((interval, key) => {
       clearInterval(interval);
@@ -230,6 +232,8 @@ export class GameSessionGateway {
       }
 
       await this.gameSessionService.assignUserToSession(userUuid, gameSession.uuid);
+      this.effectService.clearUserEffectTables([userUuid]);
+
       client.emit('join-successful', '');
 
       let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession.uuid);
