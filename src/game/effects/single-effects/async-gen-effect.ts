@@ -34,7 +34,7 @@ export class AsyncGenEffect extends AbstractEffect implements IPublishSubscribe 
       }
 
       let userEffect = await this.effectService.findByEffectName(AsyncGenEffect.EFFECT_NAME, userUuid);
-      let newEntry = await this.effectUtil.updateDatabase(AsyncGenEffect.EFFECT_NAME, userUuid, userUuid, userEffect);
+      let newEntry = await this.effectUtil.updateDatabase(AsyncGenEffect.EFFECT_NAME, userUuid, userUuid);
 
       if (userEffect) {
         this.effectUtil.clearOldInterval(userEffect);
