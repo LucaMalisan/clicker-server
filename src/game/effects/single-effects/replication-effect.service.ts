@@ -38,8 +38,7 @@ export class ReplicationEffect extends AbstractEffect implements IPublishSubscri
         throw new Error('Could not read user uuid');
       }
 
-      let userEffect = await this.effectService.findByEffectName(ReplicationEffect.EFFECT_NAME, userUuid);
-      let newUserEffectEntry = await this.effectUtil.updateDatabase(ReplicationEffect.EFFECT_NAME, userUuid, userUuid, userEffect);
+      let newUserEffectEntry = await this.effectUtil.updateDatabase(ReplicationEffect.EFFECT_NAME, userUuid, userUuid);
 
       if (!newUserEffectEntry) {
         throw new Error('Couldn\'t create or update userEffect entry');

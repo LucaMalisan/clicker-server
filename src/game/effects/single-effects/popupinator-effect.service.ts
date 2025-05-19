@@ -29,13 +29,6 @@ export class PopupinatorEffect extends AbstractEffect {
         throw new Error('Could not read user uuid');
       }
 
-      let userEffect = await this.effectService.findByEffectName(PopupinatorEffect.EFFECT_NAME, userUuid);
-      let newUserEffectEntry = await this.effectUtil.updateDatabase(PopupinatorEffect.EFFECT_NAME, userUuid, userUuid, userEffect);
-
-      if (!newUserEffectEntry) {
-        throw new Error('Couldn\'t create or update userEffect entry');
-      }
-
       let gameSession = await this.gameSessionService.findOneByUserUuidAndKey(userUuid, sessionKey);
 
       if (!gameSession) {
@@ -48,6 +41,12 @@ export class PopupinatorEffect extends AbstractEffect {
         throw new Error('Couldn\'t find any user...');
       }
 
+      let newUserEffectEntry = await this.effectUtil.updateDatabase(PopupinatorEffect.EFFECT_NAME, userUuid, randomUser.userUuid ?? '');
+
+      if (!newUserEffectEntry) {
+        throw new Error('Couldn\'t create or update userEffect entry');
+      }
+
       let socket = Variables.sockets.get(randomUser.userUuid as string);
 
       const interval = setRandomInterval(() => {
@@ -56,6 +55,7 @@ export class PopupinatorEffect extends AbstractEffect {
 
       setTimeout(async () => {
         interval.clear();
+        await this.effectService.removeEffectLogEntry(PopupinatorEffect.EFFECT_NAME, userUuid, randomUser?.userUuid ?? '')
       }, 30000);
 
       return this.effectUtil.getAvailableEffects(userUuid);

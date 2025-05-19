@@ -48,8 +48,7 @@ export class ReverseEngineeredEffect extends AbstractEffect {
         throw new Error('Couldn\'t find any user...');
       }
 
-      let userEffect = await this.effectService.findByEffectName(ReverseEngineeredEffect.EFFECT_NAME, userUuid);
-      let newUserEffectEntry = await this.effectUtil.updateDatabase(ReverseEngineeredEffect.EFFECT_NAME, userUuid, randomUser.userUuid as string, userEffect);
+      let newUserEffectEntry = await this.effectUtil.updateDatabase(ReverseEngineeredEffect.EFFECT_NAME, userUuid, randomUser.userUuid as string);
 
       if (!newUserEffectEntry) {
         throw new Error('Couldn\'t create or update userEffect entry');

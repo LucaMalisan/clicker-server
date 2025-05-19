@@ -34,7 +34,7 @@ export class EffectLogActor {
       let json2: IActiveEffect[] = result2.map((e: UserActiveEffects) => {
         return {
           effectName: e.effectName,
-          userName: e.activatedBy?.userName as string,
+          userName: e.influencedUser?.userName as string,
         };
       });
 

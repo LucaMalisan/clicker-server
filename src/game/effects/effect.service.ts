@@ -112,7 +112,7 @@ export class EffectService {
   }
 
   async removeEffectLogEntry(effectName: string, activatedByUserUuid: string, influencedUserUuid: string) {
-    return this.userActiveEffectRepo
+    let query = this.userActiveEffectRepo
       .createQueryBuilder()
       .delete()
       .where('user_active_effects.\"effectName\" = :effectName AND user_active_effects.\"activatedByUuid\" = :activatedByUserUuid AND user_active_effects.\"influencedUserUuid\" = :influencedUserUuid',
