@@ -14,7 +14,7 @@ export class Variables {
 
   public static getUserUuidBySocket(socket: Socket): String {
     for (let [key, value] of this.sockets.entries()) {
-      if (value === socket) {
+      if (value.id === socket.id) {
         return key;
       }
     }
