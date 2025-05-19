@@ -4,12 +4,12 @@ import { Socket } from 'socket.io';
 import { GameSessionService } from './game-session.service';
 import { GameSession } from '../model/gameSession.entity';
 import * as crypto from 'node:crypto';
-import { UserGameSession } from 'src/model/userGameSession.entity';
 import { EffectService } from './effects/effect.service';
 import { UsersService } from '../users/users.service';
 
 interface ISessionInfo {
   sessionKey: string,
+  started: boolean,
   joinedPlayers: any[]
   admin: boolean
 }
@@ -160,9 +160,14 @@ export class GameSessionGateway {
       }
 
       let userGameSession = await this.gameSessionService.findOneByUserUuidAndKey(userUuid, sessionKey);
-      let gameSession = await this.gameSessionService.findOneByUuid(userGameSession?.gameSessionUuid ?? '');
 
-      if (!userGameSession || !gameSession) {
+      if (!userGameSession) {
+        throw new Error('could not find user game session');
+      }
+
+      let gameSession = await this.gameSessionService.findOneByUuid(userGameSession.gameSessionUuid);
+
+      if (!gameSession) {
         throw new Error('could not find game session');
       }
 
@@ -170,6 +175,7 @@ export class GameSessionGateway {
 
       let response: ISessionInfo = {
         sessionKey: gameSession ? gameSession.hexCode : '',
+        started: gameSession?.startedAt != null,
         joinedPlayers: assignedUsers.map(e => e.user?.userName),
         admin: gameSession?.createdByUuid === userUuid,
       };
@@ -180,6 +186,7 @@ export class GameSessionGateway {
 
       let response: ISessionInfo = {
         sessionKey: '',
+        started: false,
         joinedPlayers: [],
         admin: false,
       };
