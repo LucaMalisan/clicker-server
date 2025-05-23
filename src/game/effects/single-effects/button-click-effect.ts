@@ -26,8 +26,7 @@ export class ButtonClickEffect extends AbstractEffect implements IPublishSubscri
         throw new Error('Could not read user uuid');
       }
 
-      let factor = 1; //TODO is this needed for later?
-      let addPoints = parseInt(clicks) * factor;
+      let addPoints = parseInt(clicks);
       await this.gameSessionService.updatePoints(userUuid, addPoints);
       this.emit(ButtonClickEffect.EVENT_NAME, addPoints);
     } catch (err) {
