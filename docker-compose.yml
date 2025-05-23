@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:17beta1 #wir verwenden direkt das base images anstelle eines eigenen Dockerfiles
+    restart: always
+    environment: # wir übergeben die nötigen runtime env-Variablen für den Container
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: clicker_db
+    volumes:
+      - ./db/postgres/data:/var/lib/postgresql/data
+      - ./init-script.sql:/docker-entrypoint-initdb.d/init-script.sql
+    ports: #Postgres läuft intern auf Port 5432 und soll von aussen auf localhost:5432 erreichbar sein
+      - "5432:5432"
+  server:
+    build:
+      context: .
+    environment:
+      POSTGRES_HOST: host.docker.internal
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DATABASE: clicker_db
+      PORT: 3001
+      MODE: DEV
+      RUN_MIGRATIONS: false
+    ports:
+      - "3001:3001"

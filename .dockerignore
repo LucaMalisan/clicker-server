@@ -1,0 +1,8 @@
+node_modules
+db
+.idea
+dist
+doc
+test
+.env
+.gitignore
