@@ -64,11 +64,11 @@ export class GameSessionGateway {
    * Session is created and persisted to database, mapped to the corresponding user
    * Client receives a confirmation
    * @param client
-   * @param duration
+   * @param key
    */
 
   @SubscribeMessage('ready-for-game-start')
-  async getConfirmationForGameStart(@ConnectedSocket() client: Socket, @MessageBody() key): Promise<void> {
+  async getConfirmationForGameStart(@ConnectedSocket() client: Socket, @MessageBody() key: string): Promise<void> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
 
     try {
