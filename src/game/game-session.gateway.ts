@@ -176,7 +176,7 @@ export class GameSessionGateway {
       let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession.uuid);
 
       let response: ISessionInfo = {
-        sessionKey: gameSession ? gameSession.hexCode : '',
+        sessionKey: gameSession && userGameSession ? gameSession.hexCode : '',
         started: gameSession?.startedAt != null,
         joinedPlayers: assignedUsers.map(e => e.user?.userName),
         admin: gameSession?.createdByUuid === userUuid,
@@ -195,19 +195,6 @@ export class GameSessionGateway {
 
       return JSON.stringify(response);
     }
-  }
-
-  @SubscribeMessage('is-session-join-allowed')
-  async isSessionJoinAllowed(@ConnectedSocket() client: Socket, @MessageBody() key: string): Promise<String> {
-    let userUuid = Variables.getUserUuidBySocket(client) as string;
-    let userGameSession = await this.gameSessionService.findOneByUserUuidAndKey(userUuid, key);
-
-    if (!userGameSession) {
-      return 'false';
-    }
-
-    let gameSession = await this.gameSessionService.findOneByUuid(userGameSession.gameSessionUuid);
-    return (gameSession && gameSession.startedAt != null && gameSession.endedAt == null) + '';
   }
 
   @SubscribeMessage('join-session')
