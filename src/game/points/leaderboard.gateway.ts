@@ -24,7 +24,7 @@ export class LeaderboardGateway {
     for (let gameSession of activeGameSessions) {
       let userGameSessions = await this.gameSessionService.findBySessionUuid(gameSession.uuid);
       userGameSessions = userGameSessions ?? [];
-      let leaderBoardEntries = this.generateLeaderboardFromGameSession(userGameSessions);
+      let leaderBoardEntries = await this.generateLeaderboardFromGameSession(userGameSessions);
 
       userGameSessions
         .map(e => e.userUuid)
