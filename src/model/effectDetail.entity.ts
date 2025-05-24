@@ -2,7 +2,7 @@ import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Effect } from './effect.entity';
 
 /**
- * This entity represents an in-game effect of a specific type
+ * This entity contains level-specific information for an effect
  */
 
 @Entity({ name: 'effect_detail' })

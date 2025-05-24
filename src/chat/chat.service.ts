@@ -4,6 +4,10 @@ import { Repository } from 'typeorm';
 import { ChatMessage } from '../model/chatMessage.entity';
 import { User } from '../model/user.entity';
 
+/**
+ * This service provides DB queries for handling chat messages
+ */
+
 @Injectable()
 export class ChatService {
   constructor(

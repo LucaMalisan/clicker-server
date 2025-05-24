@@ -10,7 +10,7 @@ import {
 import { User } from './user.entity';
 
 /**
- * Represents a single game session that was held
+ * Represents a single game session
  */
 
 @Entity({ name: 'game_session' })

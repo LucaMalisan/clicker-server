@@ -4,6 +4,10 @@ import { IsNull, Repository } from 'typeorm';
 import { GameSession } from '../model/gameSession.entity';
 import { UserGameSession } from '../model/userGameSession.entity';
 
+/**
+ * This service provides DB queries for handling game sessions
+ */
+
 @Injectable()
 export class GameSessionService {
   constructor(
@@ -25,13 +29,14 @@ export class GameSessionService {
       .returning('*')
       .execute();
 
+    // return created game session
     return result.raw[0];
   }
 
   async findActive(): Promise<GameSession[] | null> {
     return this.gameSessionRepo.find({
       where: {
-        endedAt: IsNull(),
+        endedAt: IsNull(), //active game sessions are those that have not ended yet
       },
     });
   }
@@ -40,7 +45,7 @@ export class GameSessionService {
     await this.userGameSessionRepo
       .createQueryBuilder()
       .update(UserGameSession)
-      .set({ points: () => `points + ${pointsToAdd}` })
+      .set({ points: () => `points + ${pointsToAdd}` }) // adjust points in userGameSession entry
       .where('userUuid = :userUuid', { userUuid: userUuid })
       .execute();
   }
@@ -61,6 +66,14 @@ export class GameSessionService {
     });
   }
 
+  /**
+   * UserGameSession entries are kept after a game session has ended.
+   * Therefore we use the user uuid and the gamesession key to find a unique entry
+   *
+   * @param uuid
+   * @param sessionKey
+   */
+
   async findOneByUserUuidAndKey(uuid: string, sessionKey: string): Promise<UserGameSession | null> {
     return this.userGameSessionRepo
       .createQueryBuilder('userGameSession')
@@ -70,6 +83,9 @@ export class GameSessionService {
   }
 
   async assignUserToSession(userUuid: string, sessionUuid: string): Promise<UserGameSession | null> {
+
+    // set the user as offline in all other game sessions
+    // this might be necessary if the user didn't close the tab of the old game session
     await this.userGameSessionRepo
       .createQueryBuilder()
       .update(UserGameSession)
@@ -80,6 +96,7 @@ export class GameSessionService {
       })
       .execute();
 
+    // add a new userGameSession entry to indicate the user belongs to the session
     let result = await this.userGameSessionRepo
       .createQueryBuilder()
       .insert()
@@ -94,6 +111,10 @@ export class GameSessionService {
     return result.raw[0];
   }
 
+  /**
+   * Returns all active users of a game session
+   * @param sessionUuid
+   */
   async findAssignedUsers(sessionUuid: string) {
     return this.userGameSessionRepo.find({
       where: {
@@ -103,15 +124,12 @@ export class GameSessionService {
     });
   }
 
-  async findBySessionUuid(uuid: string): Promise<UserGameSession[] | null> {
-    return this.userGameSessionRepo.find({
-      where: {
-        gameSessionUuid: uuid,
-        offline: false,
-      },
-    });
-  }
-
+  /**
+   * This method is necessary for some effects that affect other users
+   * It picks a random user that isn't equal to the current user and is not offline
+   * @param userUuid
+   * @param gameSessionUuid
+   */
   async findAnyButNotCurrentUser(userUuid: string, gameSessionUuid: string) {
     return this.userGameSessionRepo
       .createQueryBuilder()

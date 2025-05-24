@@ -10,8 +10,7 @@ import { User } from './user.entity';
 import { GameSession } from './gameSession.entity';
 
 /**
- * This entity is used to protocol which user participated in which game session
- * which place was reached
+ * This entity is used to map users and game sessions
  */
 
 @Entity({ name: 'user_game_session' })
@@ -34,9 +33,6 @@ export class UserGameSession {
 
   @Column({ type: 'int', nullable: false, default: 0 })
   points: number;
-
-  @Column({ type: 'int', nullable: true })
-  rank: number;
 
   @Column({ type: 'int', nullable: true })
   maxVirus: number; //current max of virus user can have

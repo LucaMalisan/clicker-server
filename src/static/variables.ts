@@ -1,9 +1,12 @@
 import { Socket } from 'socket.io';
 
-//TODO change to singleton
+/**
+ * Contains caches for user sockets and timeouts
+ */
 
 export class Variables {
 
+  //userUuid - Socket
   public static sockets: Map<String, Socket> = new Map();
 
   //userPurchasedEffect.uuid - Timeout

@@ -3,8 +3,10 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import 'dotenv/config';
 
 class ConfigService {
-  constructor(private readonly env: { [k: string]: string | undefined }) {}
+  constructor(private readonly env: { [k: string]: string | undefined }) {
+  }
 
+  //helper methods
   private getValue(key: string, throwOnMissing = true): string {
     const value = this.env[key];
 
@@ -24,15 +26,12 @@ class ConfigService {
     return this;
   }
 
-  public getPort() {
-    return this.getValue('PORT', true);
-  }
-
   public isProduction() {
     const mode = this.getValue('MODE', false);
     return mode != 'DEV';
   }
 
+  //creates a JSON with the database configurations read from .env file
   public getTypeOrmConfig(): TypeOrmModuleOptions {
     return {
       type: 'postgres',
@@ -52,6 +51,7 @@ class ConfigService {
   }
 }
 
+// assure that all relevant fields for database are set
 const configService = new ConfigService(process.env).ensureValues([
   'POSTGRES_HOST',
   'POSTGRES_PORT',

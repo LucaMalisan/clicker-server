@@ -13,7 +13,7 @@ import { UserGameSession } from './userGameSession.entity';
 import { Effect } from './effect.entity';
 
 /**
- * This table contains the buy history of a user and helps to determine which effects can be purchased next
+ * This table contains the purchae history of a user and helps to determine which effects can be purchased next
  * This table gets cleared after the end of a game session
  */
 

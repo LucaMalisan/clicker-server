@@ -24,6 +24,10 @@ interface IChatMessage {
   sessionKey: string;
 }
 
+/**
+ * This class provides websocket routes for the chat feature
+ */
+
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway {
 
@@ -33,15 +37,13 @@ export class ChatGateway {
   }
 
   /**
-   * Chat Message is persisted to database, mapped to user and game session
-   * Server receives a chat message and sends it back to all authenticated clients
+   * Persists a new chat message to the database and sends it back to all clients of the game session
    * @param client
    * @param data - {message: '...', user: '...'}
    */
 
   @SubscribeMessage('chat-message')
   handleChatMessage(@ConnectedSocket() client: Socket, @MessageBody() data: string): void {
-
     let userUuid = Variables.getUserUuidBySocket(client) as string;
 
     try {
@@ -53,6 +55,7 @@ export class ChatGateway {
 
       this.gameSessionService.findOneByUserUuidAndKey(userUuid, json.sessionKey)
         .then((userGameSession: UserGameSession) =>
+          //add database entry
           this.chatService.save({
             content: json.value,
             gameSessionUuid: userGameSession.gameSession.uuid,
@@ -65,6 +68,7 @@ export class ChatGateway {
             throw new Error('could not read username');
           }
 
+          //chat message are sent to clients with its content and the username of the author
           let iChatMessageResponse: IChatMessageResponse = {
             message: json.value,
             username: user?.userName,
@@ -83,19 +87,25 @@ export class ChatGateway {
     }
   }
 
+  /**
+   * Return all chat messages of a game session
+   * @param client
+   * @param data - {message: '...', user: '...'}
+   */
+
   @SubscribeMessage('get-chat-messages')
   async handleGetChatMessages(@ConnectedSocket() client: Socket, @MessageBody() sessionKey: string): Promise<string> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
-
-    console.log('user uuid is: ' + userUuid);
     let gameSession = await this.gameSessionService.findOneByUserUuidAndKey(userUuid, sessionKey);
 
     if (!gameSession)
       throw new Error('could not find game session');
 
+    // get all chat messages of a game session
     let chatMessages = await this.chatService.findByGameSession(gameSession.gameSessionUuid);
     let chatMessageDTOs: IChatMessageResponse[] = [];
 
+    //generate an array of chat message DTOs
     for (let message of chatMessages) {
       let user = await this.userService.findByUuid(message.writtenByUuid) as User;
       let iChatMessageResponse: IChatMessageResponse = {

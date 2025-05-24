@@ -3,6 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../model/user.entity';
 import { Repository } from 'typeorm';
 
+/**
+ * This service provides DB queries for handling users
+ */
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -26,13 +30,12 @@ export class UsersService {
     });
   }
 
-  async createIfNotExists(payload: any) {
+  async create(payload: any) {
     let result = await this.repo
       .createQueryBuilder()
       .insert()
       .into(User)
       .values(payload)
-      .orUpdate([], ['userName'])
       .returning('*')
       .execute();
 

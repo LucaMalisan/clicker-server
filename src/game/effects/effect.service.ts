@@ -6,6 +6,10 @@ import { EffectDetail } from '../../model/effectDetail.entity';
 import { UserPurchasedEffects } from '../../model/userPurchasedEffects.entity';
 import { UserActiveEffects } from 'src/model/userActiveEffects.entity';
 
+/**
+ * This service provides DB queries for handling effects
+ */
+
 @Injectable()
 export class EffectService {
   constructor(

@@ -24,6 +24,7 @@ import { UserActiveEffects } from '../../model/userActiveEffects.entity';
 import { EffectLogActor } from './effectLog.actor';
 import { PopupinatorEffect } from './single-effects/popupinator-effect.service';
 
+//all elements of this array are injected together
 const effects = [AsyncGenEffect, ButtonClickEffect, CriticalHitEffect, ReplicationEffect, ReverseEngineeredEffect, PopupinatorEffect]; // Liste aller Effekte
 
 @Module({

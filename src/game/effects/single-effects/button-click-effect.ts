@@ -6,6 +6,9 @@ import { Variables } from '../../../static/variables';
 import { GameSessionService } from '../../game-session.service';
 import { IPublishSubscribe } from '../IPublishSubscribe';
 import * as console from 'node:console';
+/**
+ * Effect handler for button click
+ */
 
 @Injectable()
 @WebSocketGateway({ cors: { origin: '*' } })
@@ -26,8 +29,11 @@ export class ButtonClickEffect extends AbstractEffect implements IPublishSubscri
         throw new Error('Could not read user uuid');
       }
 
+      // adjust the current viruses of the user
       let addPoints = parseInt(clicks);
       await this.gameSessionService.updatePoints(userUuid, addPoints);
+
+      //propagate to the subscribers that viruses were generated
       this.emit(ButtonClickEffect.EVENT_NAME, addPoints);
     } catch (err) {
       console.error(err);
