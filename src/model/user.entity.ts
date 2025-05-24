@@ -6,6 +6,10 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 
+/**
+ * Represents a single user
+ */
+
 @Entity({ name: 'user' })
 export class User {
 
