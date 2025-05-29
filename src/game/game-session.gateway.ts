@@ -5,11 +5,11 @@ import { GameSessionService } from './game-session.service';
 import { GameSession } from '../model/gameSession.entity';
 import * as crypto from 'node:crypto';
 import { EffectService } from './effects/effect.service';
-import { UsersService } from '../users/users.service';
 
 interface ISessionInfo {
   sessionKey: string,
   started: boolean,
+  ended: boolean,
   joinedPlayers: any[]
   admin: boolean
 }
@@ -197,6 +197,7 @@ export class GameSessionGateway {
       let response: ISessionInfo = {
         sessionKey: gameSession && userGameSession ? gameSession.hexCode : '',
         started: gameSession?.startedAt != null,
+        ended: gameSession?.endedAt != null,
         joinedPlayers: assignedUsers.map(e => e.user?.userName),
         admin: gameSession?.createdByUuid === userUuid,
       };
@@ -209,6 +210,7 @@ export class GameSessionGateway {
       let response: ISessionInfo = {
         sessionKey: '',
         started: false,
+        ended: false,
         joinedPlayers: [],
         admin: false,
       };
