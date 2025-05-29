@@ -12,6 +12,10 @@ interface IEffect {
   icon: string
 }
 
+/**
+ * This class provides utils methods with common logic to the single effect classes
+ */
+
 @Injectable()
 export class EffectUtil {
 

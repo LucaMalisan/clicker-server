@@ -1,3 +1,7 @@
+/**
+ * This interface defines the methods needed for the pub-sub-architecture
+ */
+
 export interface IPublishSubscribe {
 
   subscribe(eventName: string, callback: any): void;

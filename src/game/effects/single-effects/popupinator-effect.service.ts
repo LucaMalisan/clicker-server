@@ -8,6 +8,11 @@ import { EffectService } from '../effect.service';
 import { EffectUtil } from '../effect.util';
 import setRandomInterval from 'set-random-interval';
 
+/**
+ * Effect handler for popupinator effect
+ */
+
+
 @Injectable()
 @WebSocketGateway({ cors: { origin: '*' } })
 export class PopupinatorEffect extends AbstractEffect {
@@ -35,12 +40,14 @@ export class PopupinatorEffect extends AbstractEffect {
         throw new Error('Could not find game session');
       }
 
+      //determine which user should be influenced
       let randomUser = await this.gameSessionService.findAnyButNotCurrentUser(userUuid, gameSession.gameSessionUuid);
 
       if (!randomUser) {
         throw new Error('Couldn\'t find any user...');
       }
 
+      //create or update the userEffectPurchased entry
       let newUserEffectEntry = await this.effectUtil.updateDatabase(PopupinatorEffect.EFFECT_NAME, userUuid, randomUser.userUuid ?? '');
 
       if (!newUserEffectEntry) {
@@ -49,15 +56,18 @@ export class PopupinatorEffect extends AbstractEffect {
 
       let socket = Variables.sockets.get(randomUser.userUuid as string);
 
+      //in random intervals, client receives the order to show a popup
       const interval = setRandomInterval(() => {
         socket?.emit('show-popup');
       }, 1000, 5000);
 
+      //effect is active for 30 seconds
       setTimeout(async () => {
         interval.clear();
         await this.effectService.removeEffectLogEntry(PopupinatorEffect.EFFECT_NAME, userUuid, randomUser?.userUuid ?? '')
       }, 30000);
 
+      //update client's shop
       return this.effectUtil.getAvailableEffects(userUuid);
 
     } catch (err) {

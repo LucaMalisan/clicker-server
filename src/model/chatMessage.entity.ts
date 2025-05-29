@@ -11,6 +11,10 @@ import { User } from './user.entity';
 import { GameSession } from './gameSession.entity';
 import { Effect } from './effect.entity';
 
+/**
+ * Represents a chat message
+ */
+
 @Entity({ name: 'chat_message' })
 export class ChatMessage {
 
