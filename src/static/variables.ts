@@ -1,4 +1,5 @@
 import { Socket } from 'socket.io';
+import { CurrentBalanceMethod } from '../game/points/evaluationMethods/CurrentBalanceMethod';
 
 //TODO change to singleton
 
@@ -19,6 +20,14 @@ export class Variables {
       }
     }
     return '';
+  }
+
+  public static evaluationMethods = new Map<string, IEvaluationMethod>([
+    ['currentBalance', new CurrentBalanceMethod()],
+  ]);
+
+  public static getEvaluationMethods() {
+    return Array.from(this.evaluationMethods, ([name, value]) => name);
   }
 }
 
