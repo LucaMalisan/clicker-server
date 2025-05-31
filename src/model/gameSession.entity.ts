@@ -12,7 +12,7 @@ import { Variables } from '../static/variables';
 import { IsIn } from "class-validator";
 
 /**
- * Represents a single game session that was held
+ * Represents a single game session
  */
 
 @Entity({ name: 'game_session' })

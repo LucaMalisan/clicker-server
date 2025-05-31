@@ -1,10 +1,13 @@
 import { Socket } from 'socket.io';
 import { CurrentBalanceMethod } from '../game/points/evaluationMethods/CurrentBalanceMethod';
 
-//TODO change to singleton
+/**
+ * Contains caches for user sockets and timeouts
+ */
 
 export class Variables {
 
+  //userUuid - Socket
   public static sockets: Map<String, Socket> = new Map();
 
   //userPurchasedEffect.uuid - Timeout
@@ -15,7 +18,7 @@ export class Variables {
 
   public static getUserUuidBySocket(socket: Socket): String {
     for (let [key, value] of this.sockets.entries()) {
-      if (value === socket) {
+      if (value.id === socket.id) {
         return key;
       }
     }

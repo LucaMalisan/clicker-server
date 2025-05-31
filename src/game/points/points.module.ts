@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { GamePointsActor } from './game-points.actor';
-import { LeaderboardActor } from './leaderboard.actor';
+import { LeaderboardGateway } from './leaderboard.gateway';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { configService } from '../../config/config.service';
 import { GameSession } from '../../model/gameSession.entity';
@@ -14,10 +14,10 @@ import { GameSessionService } from '../game-session.service';
   ],
   providers: [
     GamePointsActor,
-    LeaderboardActor,
+    LeaderboardGateway,
     GameSessionService
   ],
-  exports: [GamePointsActor, LeaderboardActor],
+  exports: [GamePointsActor, LeaderboardGateway],
 })
 
 export class PointsModule {

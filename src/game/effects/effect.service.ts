@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Effect } from '../../model/effect.entity';
 import { EffectDetail } from '../../model/effectDetail.entity';
 import { UserPurchasedEffects } from '../../model/userPurchasedEffects.entity';
 import { UserActiveEffects } from 'src/model/userActiveEffects.entity';
-import { User } from '../../model/user.entity';
+
+/**
+ * This service provides DB queries for handling effects
+ */
 
 @Injectable()
 export class EffectService {
@@ -125,8 +128,11 @@ export class EffectService {
       .execute();
   }
 
-  async clearUserEffectTables() {
-    await this.userActiveEffectRepo.clear();
-    await this.userPurchasedEffectRepo.clear();
+  async clearUserEffectTables(userUuids: string[]) {
+    await this.userActiveEffectRepo
+      .delete({ activatedByUuid: In(userUuids) });
+
+    await this.userPurchasedEffectRepo
+      .delete({ userUuid: In(userUuids) });
   }
 }

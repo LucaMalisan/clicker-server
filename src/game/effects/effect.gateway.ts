@@ -3,7 +3,9 @@ import { Socket } from 'socket.io';
 import { Variables } from '../../static/variables';
 import { EffectUtil } from './effect.util';
 
-
+/**
+ * This class provides websocket routes for the effects
+ */
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EffectGateway {
