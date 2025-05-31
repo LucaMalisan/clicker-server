@@ -39,7 +39,7 @@ export class AsyncGenEffect extends AbstractEffect implements IPublishSubscribe 
 
       //create or update the userEffectPurchased entry
       let userEffect = await this.effectService.findByEffectName(AsyncGenEffect.EFFECT_NAME, userUuid);
-      let newEntry = await this.effectUtil.updateDatabase(AsyncGenEffect.EFFECT_NAME, userUuid, userUuid);
+      let newEntry = await this.effectUtil.updateDatabase(AsyncGenEffect.EFFECT_NAME, sessionKey, userUuid, userUuid);
 
       //if there's already existed an userEffectPurchased entry, there's already an active interval. we need to clear it
       if (userEffect) {
@@ -57,7 +57,7 @@ export class AsyncGenEffect extends AbstractEffect implements IPublishSubscribe 
         let pointsToAdd = efficiency ?? 0;
 
         // adjust the current viruses of the user
-        await this.gameSessionService.updatePoints(userUuid, pointsToAdd);
+        await this.gameSessionService.updatePoints(userUuid, sessionKey, pointsToAdd);
 
         //propagate to the subscribers that viruses were generated
         this.emit(AsyncGenEffect.EVENT_NAME, pointsToAdd);

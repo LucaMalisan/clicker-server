@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { GameSession } from '../model/gameSession.entity';
 import { UserGameSession } from '../model/userGameSession.entity';
+import { Variables } from '../static/variables';
 
 /**
  * This service provides DB queries for handling game sessions
@@ -41,13 +42,22 @@ export class GameSessionService {
     });
   }
 
-  async updatePoints(userUuid: string, pointsToAdd: number) {
-    await this.userGameSessionRepo
-      .createQueryBuilder()
-      .update(UserGameSession)
-      .set({ points: () => `points + ${pointsToAdd}` }) // adjust points in userGameSession entry
-      .where('userUuid = :userUuid', { userUuid: userUuid })
-      .execute();
+  async updatePoints(userUuid: string, hexCode: string, pointsToAdd: number) {
+    let userGameSession = await this.findOneByUserUuidAndKey(userUuid, hexCode);
+
+    if(!userGameSession) {
+      throw new Error("user game session not found");
+    }
+
+    let evaluationMethod = userGameSession?.gameSession.evaluationMethod;
+
+    if(!evaluationMethod) {
+      throw new Error("evaluation method not found:" + evaluationMethod);
+    }
+
+    pointsToAdd = Variables.evaluationMethods.get(evaluationMethod)?.pointsToAdd(pointsToAdd) ?? pointsToAdd;
+    userGameSession.points += pointsToAdd;
+    await this.userGameSessionRepo.save(userGameSession);
   }
 
   async findOneByKey(key: string): Promise<GameSession | null> {

@@ -38,7 +38,7 @@ export class CriticalHitEffect extends AbstractEffect implements IPublishSubscri
       }
 
       //create or update the userEffectPurchased entry
-      let newUserEffectEntry = await this.effectUtil.updateDatabase(CriticalHitEffect.EFFECT_NAME, userUuid, userUuid);
+      let newUserEffectEntry = await this.effectUtil.updateDatabase(CriticalHitEffect.EFFECT_NAME, sessionKey, userUuid, userUuid);
 
       if (!newUserEffectEntry) {
         throw new Error('Couldn\'t create or update userEffect entry');
@@ -54,7 +54,7 @@ export class CriticalHitEffect extends AbstractEffect implements IPublishSubscri
           let addPoints = parseInt(clicks) * ((effectDetailEntry?.efficiency ?? 1) - 1);
 
           // adjust the current viruses of the user
-          await this.gameSessionService.updatePoints(userUuid, addPoints);
+          await this.gameSessionService.updatePoints(userUuid, sessionKey, addPoints);
 
           //propagate to the subscribers that viruses were generated
           this.emit(CriticalHitEffect.EVENT_NAME, addPoints);

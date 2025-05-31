@@ -50,7 +50,7 @@ export class EffectUtil {
     return JSON.stringify(effectJSON);
   }
 
-  async updateDatabase(effectName: string, createdByUserUuid: string, influencedUserUuid: string): Promise<UserPurchasedEffects | null> {
+  async updateDatabase(effectName: string, hexCode: string, createdByUserUuid: string, influencedUserUuid: string): Promise<UserPurchasedEffects | null> {
     let effect = await this.effectService.findByName(effectName);
     if (!effect) {
       throw new Error('could not find effect');
@@ -59,7 +59,7 @@ export class EffectUtil {
     let userEffect = await this.effectService.increaseLevelOrCreateEntry(effect.name, createdByUserUuid);
     let currentLevel = this.getCurrentLevel(userEffect);
     let price = await this.effectService.getPriceOfEffectLevel(effect.name, currentLevel);
-    this.gameSessionService.updatePoints(createdByUserUuid, (-1 * (price ?? 0)));
+    this.gameSessionService.updatePoints(createdByUserUuid, hexCode, (-1 * (price ?? 0)));
     await this.effectService.createEffectLogEntry(effectName, createdByUserUuid, influencedUserUuid);
     return userEffect;
   }

@@ -52,6 +52,7 @@ export class GameSessionGateway {
         createdByUuid: userUuid,
         duration: parsedDuration * 60 * 1000,
         hexCode: `#${crypto.randomBytes(4).toString('hex')}`,
+        evaluationMethod: 'currentBalance',
       });
 
       console.log('created game session: ' + gameSession.hexCode);

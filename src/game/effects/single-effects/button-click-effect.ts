@@ -6,6 +6,12 @@ import { Variables } from '../../../static/variables';
 import { GameSessionService } from '../../game-session.service';
 import { IPublishSubscribe } from '../IPublishSubscribe';
 import * as console from 'node:console';
+
+interface IButtonClick {
+  buttonClicks: string,
+  hexCode: string
+}
+
 /**
  * Effect handler for button click
  */
@@ -23,6 +29,7 @@ export class ButtonClickEffect extends AbstractEffect implements IPublishSubscri
 
   @SubscribeMessage('handle-button-clicks') async handleButtonClicks(@ConnectedSocket() client: Socket, @MessageBody() clicks: string): Promise<void> {
     let userUuid = Variables.getUserUuidBySocket(client) as string;
+    let json = JSON.parse(clicks);
 
     try {
       if (!userUuid) {
@@ -30,8 +37,8 @@ export class ButtonClickEffect extends AbstractEffect implements IPublishSubscri
       }
 
       // adjust the current viruses of the user
-      let addPoints = parseInt(clicks);
-      await this.gameSessionService.updatePoints(userUuid, addPoints);
+      let addPoints = parseInt(json.buttonClicks);
+      await this.gameSessionService.updatePoints(userUuid, json.hexCode, addPoints);
 
       //propagate to the subscribers that viruses were generated
       this.emit(ButtonClickEffect.EVENT_NAME, addPoints);
