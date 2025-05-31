@@ -5,6 +5,7 @@ import { GameSessionService } from './game-session.service';
 import { GameSession } from '../model/gameSession.entity';
 import * as crypto from 'node:crypto';
 import { EffectService } from './effects/effect.service';
+import { SessionTimer } from './SessionTimer';
 
 interface ISessionInfo {
   sessionKey: string,
@@ -119,7 +120,9 @@ export class GameSessionGateway {
       }
 
       //init session timer
-      Variables.sessionTimerIntervals.set(gameSession.uuid, setTimeout(async () => this.stopGameSession(gameSession), this.getRemainingDuration(gameSession)));
+      Variables.sessionTimerIntervals.set(gameSession.uuid, setTimeout(async () => {
+        this.stopGameSession(gameSession);
+      }, SessionTimer.getRemainingDuration(gameSession)));
     } catch (err) {
       console.error(`caught error: ${err}`);
     }
@@ -138,16 +141,7 @@ export class GameSessionGateway {
       throw new Error('could not find game session');
     }
 
-    return this.getRemainingDuration(gameSession) + '';
-  }
-
-  protected getRemainingDuration(gameSession: GameSession): number {
-    if (!gameSession || !gameSession.startedAt || !gameSession.duration) {
-      return 0;
-    }
-
-    //total duration minus passed time since start = remaining time
-    return gameSession.duration - (Date.now() - gameSession.startedAt.getTime());
+    return SessionTimer.getRemainingDuration(gameSession) + '';
   }
 
   protected async stopGameSession(gameSession: GameSession) {

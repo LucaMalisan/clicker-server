@@ -4,6 +4,8 @@ import { IsNull, Repository } from 'typeorm';
 import { GameSession } from '../model/gameSession.entity';
 import { UserGameSession } from '../model/userGameSession.entity';
 import { Variables } from '../static/variables';
+import { GameSessionGateway } from './game-session.gateway';
+import { SessionTimer } from './SessionTimer';
 
 /**
  * This service provides DB queries for handling game sessions
@@ -45,18 +47,17 @@ export class GameSessionService {
   async updatePoints(userUuid: string, hexCode: string, pointsToAdd: number) {
     let userGameSession = await this.findOneByUserUuidAndKey(userUuid, hexCode);
 
-    if(!userGameSession) {
-      throw new Error("user game session not found");
+    if (!userGameSession) {
+      throw new Error('user game session not found');
     }
 
     let evaluationMethod = userGameSession?.gameSession.evaluationMethod;
 
-    if(!evaluationMethod) {
-      throw new Error("evaluation method not found:" + evaluationMethod);
+    if (!evaluationMethod) {
+      throw new Error('evaluation method not found:' + evaluationMethod);
     }
 
-    let pointsChange = Variables.evaluationMethods.get(evaluationMethod)?.pointsToAdd(pointsToAdd) ?? pointsToAdd;
-    userGameSession.points += pointsChange;
+    userGameSession.points = Variables.evaluationMethods.get(evaluationMethod)?.updatePoints(pointsToAdd, userGameSession) ?? pointsToAdd;
     userGameSession.balance += pointsToAdd;
     await this.userGameSessionRepo.save(userGameSession);
   }

@@ -3,9 +3,10 @@ export class CurrentBalanceMethod implements IEvaluationMethod {
   /**
    * No specific logic, just update the current balance
    * @param change
+   * @param userGameSession
    */
-  pointsToAdd(change: number): number {
-    return change;
+  updatePoints(change: number, userGameSession: UserGameSession): number {
+    return userGameSession.points + change;
   }
 
   getDescription(): string {

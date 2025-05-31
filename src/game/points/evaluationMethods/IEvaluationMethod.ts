@@ -1,6 +1,8 @@
+import { UserGameSession } from '../../../model/userGameSession.entity';
+
 interface IEvaluationMethod {
 
-  pointsToAdd(change: number): number;
+  updatePoints(change: number, userGameSession:UserGameSession): number;
 
   getDescription(): string
 }
