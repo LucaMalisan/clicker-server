@@ -1,12 +1,15 @@
+import { UserGameSession } from '../../../model/userGameSession.entity';
+import { IEvaluationMethod } from './IEvaluationMethod';
+
 export class TotalCollectedMethod implements IEvaluationMethod {
 
   /**
-   * Only add points, don't subtract any
+   * No specific logic, just use totalCollected points
    * @param change
    * @param userGameSession
    */
   updatePoints(change: number, userGameSession: UserGameSession): number {
-    return userGameSession.points + Math.max(0, change);
+    return userGameSession.totalCollected;
   }
 
   getDescription(): string {

@@ -1,12 +1,15 @@
+import { UserGameSession } from '../../../model/userGameSession.entity';
+import { IEvaluationMethod } from './IEvaluationMethod';
+
 export class CurrentBalanceMethod implements IEvaluationMethod {
 
   /**
-   * No specific logic, just update the current balance
+   * No specific logic, just use the current balance
    * @param change
    * @param userGameSession
    */
   updatePoints(change: number, userGameSession: UserGameSession): number {
-    return userGameSession.points + change;
+    return userGameSession.balance;
   }
 
   getDescription(): string {
