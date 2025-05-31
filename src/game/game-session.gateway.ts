@@ -14,6 +14,16 @@ interface ISessionInfo {
   admin: boolean
 }
 
+interface ISessionParameters {
+  duration: string,
+  evaluationMethod: string
+}
+
+interface IEvaluationMethod {
+  value: string,
+  description: string
+}
+
 /**
  * This class handles the client-side game session through websocket routes
  */
@@ -32,7 +42,7 @@ export class GameSessionGateway {
    * @param duration
    */
 
-  @SubscribeMessage('create-session') async handleSessionCreation(@ConnectedSocket() client: Socket, @MessageBody() duration: string): Promise<void> {
+  @SubscribeMessage('create-session') async handleSessionCreation(@ConnectedSocket() client: Socket, @MessageBody() payload: string): Promise<void> {
     try {
       let userUuid = Variables.getUserUuidBySocket(client) as string;
 
@@ -40,7 +50,8 @@ export class GameSessionGateway {
         throw new Error('user uuid could not be found');
       }
 
-      let parsedDuration = parseInt(duration);
+      let json: ISessionParameters = JSON.parse(payload);
+      let parsedDuration = parseInt(json.duration);
 
       if (parsedDuration <= 0 || isNaN(parsedDuration) || !Number.isInteger(parsedDuration)) {
         throw new Error('Duration must be greater than 0');
@@ -52,7 +63,7 @@ export class GameSessionGateway {
         createdByUuid: userUuid,
         duration: parsedDuration * 60 * 1000,
         hexCode: `#${crypto.randomBytes(4).toString('hex')}`,
-        evaluationMethod: 'currentBalance',
+        evaluationMethod: json.evaluationMethod,
       });
 
       console.log('created game session: ' + gameSession.hexCode);
@@ -271,5 +282,18 @@ export class GameSessionGateway {
       console.error(`caught error: ${err}`);
       return err.message;
     }
+  }
+
+  @SubscribeMessage('get-available-evaluation-methods')
+  async getAvailableEvaluationMethods(@ConnectedSocket() client: Socket) {
+    return JSON.stringify(
+      Variables.getEvaluationMethods()
+        .map(e => {
+          let json: IEvaluationMethod = {
+            value: e,
+            description: Variables.evaluationMethods.get(e)?.getDescription() ?? '',
+          };
+          return json;
+        }));
   }
 }

@@ -7,4 +7,8 @@ export class CurrentBalanceMethod implements IEvaluationMethod {
   pointsToAdd(change: number): number {
     return change;
   }
+
+  getDescription(): string {
+    return "Aktuelle Anzahl Viren"
+  }
 }

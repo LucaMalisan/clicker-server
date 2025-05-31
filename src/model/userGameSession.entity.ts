@@ -32,6 +32,9 @@ export class UserGameSession {
   gameSessionUuid: GameSession['uuid'];
 
   @Column({ type: 'int', nullable: false, default: 0 })
+  balance: number;
+
+  @Column({ type: 'int', nullable: false, default: 0 })
   points: number;
 
   @Column({ type: 'int', nullable: true })

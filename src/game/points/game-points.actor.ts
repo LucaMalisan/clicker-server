@@ -24,7 +24,7 @@ export class GamePointsActor {
       userGameSessions = userGameSessions ? userGameSessions : [];
 
       for (let userGameSession of userGameSessions) {
-        Variables.sockets.get(userGameSession.userUuid + '')?.emit('points', userGameSession.points ? userGameSession.points : 0 );
+        Variables.sockets.get(userGameSession.userUuid + '')?.emit('points', userGameSession.balance ? userGameSession.balance : 0 );
       }
     }
   }

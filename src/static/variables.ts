@@ -1,5 +1,6 @@
 import { Socket } from 'socket.io';
 import { CurrentBalanceMethod } from '../game/points/evaluationMethods/CurrentBalanceMethod';
+import { TotalCollectedMethod } from '../game/points/evaluationMethods/TotalCollectedMethod';
 
 /**
  * Contains caches for user sockets and timeouts
@@ -27,6 +28,7 @@ export class Variables {
 
   public static evaluationMethods = new Map<string, IEvaluationMethod>([
     ['currentBalance', new CurrentBalanceMethod()],
+    ['totalCollected', new TotalCollectedMethod()],
   ]);
 
   public static getEvaluationMethods() {

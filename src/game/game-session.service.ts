@@ -55,8 +55,9 @@ export class GameSessionService {
       throw new Error("evaluation method not found:" + evaluationMethod);
     }
 
-    pointsToAdd = Variables.evaluationMethods.get(evaluationMethod)?.pointsToAdd(pointsToAdd) ?? pointsToAdd;
-    userGameSession.points += pointsToAdd;
+    let pointsChange = Variables.evaluationMethods.get(evaluationMethod)?.pointsToAdd(pointsToAdd) ?? pointsToAdd;
+    userGameSession.points += pointsChange;
+    userGameSession.balance += pointsToAdd;
     await this.userGameSessionRepo.save(userGameSession);
   }
 
