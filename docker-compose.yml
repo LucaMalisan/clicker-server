@@ -1,3 +1,6 @@
+# zuerst Postgres ausführen, erst dann Server
+# sonst gibt es connection Probleme
+
 services:
   postgres:
     image: postgres:17beta1 #wir verwenden direkt das base images anstelle eines eigenen Dockerfiles
@@ -8,7 +11,6 @@ services:
       POSTGRES_DB: clicker_db
     volumes:
       - ./db/postgres/data:/var/lib/postgresql/data
-      - ./init-script.sql:/docker-entrypoint-initdb.d/init-script.sql
     ports: #Postgres läuft intern auf Port 5432 und soll von aussen auf localhost:5432 erreichbar sein
       - "5432:5432"
   server:
