@@ -1,6 +1,3 @@
-# zuerst Postgres ausführen, erst dann Server
-# sonst gibt es connection Probleme
-
 services:
   postgres:
     image: postgres:17beta1 #wir verwenden direkt das base images anstelle eines eigenen Dockerfiles

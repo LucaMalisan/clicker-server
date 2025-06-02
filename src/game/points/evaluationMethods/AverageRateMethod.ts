@@ -10,7 +10,7 @@ export class AverageRateMethod implements IEvaluationMethod {
    * @param userGameSession
    */
   updatePoints(change: number, userGameSession: UserGameSession): number {
-    let elapsedTime = SessionTimer.getElapsedTime(userGameSession.gameSession) - userGameSession.updatedAt.getMilliseconds();
+    let elapsedTime = SessionTimer.getElapsedTime(userGameSession.gameSession);
     return Math.round(userGameSession.totalCollected / (elapsedTime / 1000));
   }
 
