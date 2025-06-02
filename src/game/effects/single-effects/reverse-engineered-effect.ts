@@ -53,7 +53,7 @@ export class ReverseEngineeredEffect extends AbstractEffect {
       }
 
       //create or update the userEffectPurchased entry
-      let newUserEffectEntry = await this.effectUtil.updateDatabase(ReverseEngineeredEffect.EFFECT_NAME, userUuid, randomUser.userUuid as string);
+      let newUserEffectEntry = await this.effectUtil.updateDatabase(ReverseEngineeredEffect.EFFECT_NAME, sessionKey, userUuid, randomUser.userUuid as string);
 
       if (!newUserEffectEntry) {
         throw new Error('Couldn\'t create or update userEffect entry');
@@ -61,7 +61,7 @@ export class ReverseEngineeredEffect extends AbstractEffect {
 
       //the effects doubles all collected viruses and subtracts them (all collected points count negative)
       let callback = async (clicks: string, randomUserUuid: string) => {
-        await this.gameSessionService.updatePoints(randomUserUuid ?? '', -2 * parseInt(clicks));
+        await this.gameSessionService.updatePoints(randomUserUuid ?? '',  sessionKey, -2 * parseInt(clicks));
       };
 
       //the effect considers all viruses collected by other effects

@@ -48,7 +48,7 @@ export class PopupinatorEffect extends AbstractEffect {
       }
 
       //create or update the userEffectPurchased entry
-      let newUserEffectEntry = await this.effectUtil.updateDatabase(PopupinatorEffect.EFFECT_NAME, userUuid, randomUser.userUuid ?? '');
+      let newUserEffectEntry = await this.effectUtil.updateDatabase(PopupinatorEffect.EFFECT_NAME, sessionKey, userUuid, randomUser.userUuid ?? '');
 
       if (!newUserEffectEntry) {
         throw new Error('Couldn\'t create or update userEffect entry');

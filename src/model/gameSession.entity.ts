@@ -8,6 +8,8 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
+import { Variables } from '../static/variables';
+import { IsIn } from "class-validator";
 
 /**
  * Represents a single game session
@@ -37,6 +39,12 @@ export class GameSession {
 
   @Column({ name: 'created_by' })
   createdByUuid?: User["uuid"];
+
+  @Column({ name: 'evaluation_method' })
+  @IsIn(Variables.getEvaluationMethods(), {
+    message: `Evaluation method must be one of: ${Variables.getEvaluationMethods().join(", ")}`,
+  })
+  evaluationMethod?: string;
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

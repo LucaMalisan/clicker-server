@@ -32,10 +32,13 @@ export class UserGameSession {
   gameSessionUuid: GameSession['uuid'];
 
   @Column({ type: 'int', nullable: false, default: 0 })
-  points: number;
+  balance: number;
 
-  @Column({ type: 'int', nullable: true })
-  maxVirus: number; //current max of virus user can have
+  @Column({ type: 'int', nullable: false, default: 0 })
+  totalCollected: number;
+
+  @Column({ type: 'int', nullable: false, default: 0 })
+  points: number;
 
   @Column({ type: 'boolean', nullable: false, default: false })
   offline: boolean;
