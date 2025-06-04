@@ -148,14 +148,14 @@ export class GameSessionGateway {
     //stop session timer
     clearTimeout(Variables.sessionTimerIntervals.get(gameSession.uuid));
 
+    //mark game session as finished on database
+    gameSession.endedAt = new Date(Date.now());
+    await this.gameSessionService.save(gameSession);
+
     for (let socket of Variables.sockets.values()) {
       //indicate to the client that the game ends
       socket.emit('stop-session', '');
     }
-
-    //mark game session as finished on database
-    gameSession.endedAt = new Date(Date.now());
-    await this.gameSessionService.save(gameSession);
 
     //tables managing purchased and active effects are cleared after each round
     let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession.uuid);
