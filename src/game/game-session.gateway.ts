@@ -152,11 +152,6 @@ export class GameSessionGateway {
     gameSession.endedAt = new Date(Date.now());
     await this.gameSessionService.save(gameSession);
 
-    for (let socket of Variables.sockets.values()) {
-      //indicate to the client that the game ends
-      socket.emit('stop-session', '');
-    }
-
     //tables managing purchased and active effects are cleared after each round
     let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession.uuid);
     this.effectService.clearUserEffectTables(assignedUsers.map(e => e.userUuid ?? ''));
@@ -165,6 +160,11 @@ export class GameSessionGateway {
     Variables.userEffectIntervals.forEach((interval, key) => {
       clearInterval(interval);
     });
+
+    for (let socket of Variables.sockets.values()) {
+      //indicate to the client that the game ends
+      socket.emit('stop-session', '');
+    }
 
     Promise.resolve();
   }
