@@ -69,6 +69,9 @@ export class GameSessionService {
     await this.userGameSessionRepo
       .createQueryBuilder()
       .update(UserGameSession)
+      .where({
+        uuid: userGameSession.uuid,
+      })
       .set(updateJson)
       .execute();
 
