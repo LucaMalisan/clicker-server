@@ -114,10 +114,15 @@ export class GameSessionGateway {
         await this.gameSessionService.save(gameSession);
       }
 
-      //indicate to all clients that the game starts
-      for (let socket of Variables.sockets.values()) {
-        socket.emit('start-game');
-      }
+      //indicate to all assigned clients that the game starts
+      let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession.uuid);
+      let uuids = assignedUsers.map(e => e.userUuid);
+
+      Variables.sockets.forEach((value: any, key: any) => {
+        if (uuids.includes(key)) {
+          value.emit('start-game');
+        }
+      });
 
       //init session timer
       Variables.sessionTimerIntervals.set(gameSession.uuid, setTimeout(async () => {
@@ -154,17 +159,23 @@ export class GameSessionGateway {
 
     //tables managing purchased and active effects are cleared after each round
     let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession.uuid);
-    this.effectService.clearUserEffectTables(assignedUsers.map(e => e.userUuid ?? ''));
+    let uuids: any = assignedUsers.map(e => e.userUuid);
+    let entries = await this.effectService.clearUserEffectTables(uuids);
+    let entryUuids: String[] = entries.map(e => e.uuid);
+
 
     //all effect intervals are cleared
     Variables.userEffectIntervals.forEach((interval, key) => {
-      clearInterval(interval);
+      if (entryUuids.includes(key)) {
+        clearInterval(interval);
+      }
     });
 
-    for (let socket of Variables.sockets.values()) {
-      //indicate to the client that the game ends
-      socket.emit('stop-session', '');
-    }
+    Variables.sockets.forEach((value: any, key: any) => {
+      if (uuids.includes(key)) {
+        value.emit('stop-session', '');
+      }
+    });
 
     Promise.resolve();
   }
