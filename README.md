@@ -9,3 +9,5 @@ Folgende Schritte sind dazu nötig:
   <li> <a href="https://github.com/LucaMalisan/clicker-server/blob/main/init-script.sql"> init-script.sql </a> ausführen, um effect und effect_detail Tabellen zu befüllen </li>
   <li> Der Server läuft unter <a href="http://localhost:3001">localhost:3001</a>   </li>
 </ol>
+
+Further reading: <a href="https://github.com/LucaMalisan/clicker-server/blob/main/WebE%20Dokumentation.pdf">WebE Dokumentation</a>
