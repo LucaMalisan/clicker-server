@@ -62,10 +62,12 @@ export class PopupinatorEffect extends AbstractEffect {
       }, 1000, 5000);
 
       //effect is active for 30 seconds
-      setTimeout(async () => {
+      let timeout = setTimeout(async () => {
         interval.clear();
         await this.effectService.removeEffectLogEntry(PopupinatorEffect.EFFECT_NAME, userUuid, randomUser?.userUuid ?? '')
       }, 30000);
+
+      Variables.userEffectIntervals.set(newUserEffectEntry.uuid, timeout);
 
       //update client's shop
       return this.effectUtil.getAvailableEffects(userUuid);

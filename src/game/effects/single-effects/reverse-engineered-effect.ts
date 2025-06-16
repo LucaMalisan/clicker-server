@@ -82,6 +82,8 @@ export class ReverseEngineeredEffect extends AbstractEffect {
         clearTimeout(timeout);
       }, 5000);
 
+      Variables.userEffectIntervals.set(newUserEffectEntry.uuid, timeout);
+
       //update client's shop
       return this.effectUtil.getAvailableEffects(userUuid);
     } catch (err) {

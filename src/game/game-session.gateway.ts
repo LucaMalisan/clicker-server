@@ -168,6 +168,7 @@ export class GameSessionGateway {
     Variables.userEffectIntervals.forEach((interval, key) => {
       if (entryUuids.includes(key)) {
         clearInterval(interval);
+        clearTimeout(interval);
       }
     });
 

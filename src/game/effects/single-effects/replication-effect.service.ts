@@ -87,6 +87,7 @@ export class ReplicationEffect extends AbstractEffect implements IPublishSubscri
         client.emit('reactivate-effect', ReplicationEffect.EFFECT_NAME);
       }, 5000);
 
+      Variables.userEffectIntervals.set(newUserEffectEntry.uuid, timeout);
       return this.effectUtil.getAvailableEffects(userUuid);
 
     } catch (err) {
