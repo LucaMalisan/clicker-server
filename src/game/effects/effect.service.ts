@@ -132,7 +132,16 @@ export class EffectService {
     await this.userActiveEffectRepo
       .delete({ activatedByUuid: In(userUuids) });
 
+    let entries = await this.userPurchasedEffectRepo
+      .find({
+        where: {
+          userUuid: In(userUuids)
+        }
+      });
+
     await this.userPurchasedEffectRepo
       .delete({ userUuid: In(userUuids) });
+
+    return entries;
   }
 }

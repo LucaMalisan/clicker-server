@@ -75,12 +75,18 @@ export class ChatGateway {
           };
           return [iChatMessageResponse];
         })
-        .then(response => {
+        .then(async response => {
           let resp = JSON.stringify(response);
 
-          for (let sk of Variables.sockets.values()) {
-            sk.emit('chat-message', resp);
-          }
+          let gameSession = await this.gameSessionService.findOneByKey(json.sessionKey);
+          let assignedUsers = await this.gameSessionService.findAssignedUsers(gameSession?.uuid ?? '');
+          let uuids = assignedUsers.map(e => e.userUuid);
+
+          Variables.sockets.forEach((value: any, key: any) => {
+            if (uuids.includes(key)) {
+              value.emit('chat-message', resp);
+            }
+          });
         });
     } catch (err) {
       console.error(`caught error: ${err}`);

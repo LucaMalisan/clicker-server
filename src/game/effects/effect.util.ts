@@ -59,7 +59,10 @@ export class EffectUtil {
     let userEffect = await this.effectService.increaseLevelOrCreateEntry(effect.name, createdByUserUuid);
     let currentLevel = this.getCurrentLevel(userEffect);
     let price = await this.effectService.getPriceOfEffectLevel(effect.name, currentLevel);
-    this.gameSessionService.updatePoints(createdByUserUuid, hexCode, (-1 * (price ?? 0)));
+
+    let userGameSession = await this.gameSessionService.updatePoints(createdByUserUuid, hexCode, (-1 * (price ?? 0)));
+    console.log(userGameSession.balance);
+
     await this.effectService.createEffectLogEntry(effectName, createdByUserUuid, influencedUserUuid);
     return userEffect;
   }

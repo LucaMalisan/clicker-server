@@ -62,6 +62,7 @@ export class ReplicationEffect extends AbstractEffect implements IPublishSubscri
       this.buttonClick.subscribe(ButtonClickEffect.EVENT_NAME, (clicks: string) => callback(clicks, userUuid));
 
       let timeout = setTimeout(async () => {
+
         //collected viruses are multiplied
         let points = this.collectedPoints.get(userUuid) ?? 0;
         let effectDetailEntry = await this.effectService.getLevelDetailEntry(ReplicationEffect.EFFECT_NAME, newUserEffectEntry.currentLevel);
@@ -86,6 +87,7 @@ export class ReplicationEffect extends AbstractEffect implements IPublishSubscri
         client.emit('reactivate-effect', ReplicationEffect.EFFECT_NAME);
       }, 5000);
 
+      Variables.userEffectIntervals.set(newUserEffectEntry.uuid, timeout);
       return this.effectUtil.getAvailableEffects(userUuid);
 
     } catch (err) {

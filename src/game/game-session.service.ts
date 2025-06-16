@@ -57,10 +57,25 @@ export class GameSessionService {
       throw new Error('evaluation method not found:' + evaluationMethod);
     }
 
-    userGameSession.balance += pointsToAdd;
-    userGameSession.totalCollected += Math.max(0, pointsToAdd);
-    userGameSession.points = Variables.evaluationMethods.get(evaluationMethod)?.updatePoints(pointsToAdd, userGameSession) ?? pointsToAdd;
-    await this.userGameSessionRepo.save(userGameSession);
+    let updateJson = {};
+
+    if (pointsToAdd !== 0) {
+      updateJson['balance'] = userGameSession.balance + pointsToAdd;
+      updateJson['totalCollected'] = userGameSession.totalCollected + Math.max(0, pointsToAdd);
+    }
+
+    updateJson['points'] = Variables.evaluationMethods.get(evaluationMethod)?.updatePoints(pointsToAdd, userGameSession) ?? pointsToAdd;
+
+    await this.userGameSessionRepo
+      .createQueryBuilder()
+      .update(UserGameSession)
+      .where({
+        uuid: userGameSession.uuid,
+      })
+      .set(updateJson)
+      .execute();
+
+    return userGameSession;
   }
 
   async findOneByKey(key: string): Promise<GameSession | null> {
