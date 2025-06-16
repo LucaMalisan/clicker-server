@@ -57,12 +57,13 @@ export class GameSessionService {
       throw new Error('evaluation method not found:' + evaluationMethod);
     }
 
-    if (pointsToAdd !== 0) {
+    if(pointsToAdd !== 0) {
       userGameSession.balance += pointsToAdd;
       userGameSession.totalCollected += Math.max(0, pointsToAdd);
-      userGameSession.points = Variables.evaluationMethods.get(evaluationMethod)?.updatePoints(pointsToAdd, userGameSession) ?? pointsToAdd;
-      await this.userGameSessionRepo.save(userGameSession);
     }
+
+      userGameSession.points = Variables.evaluationMethods.get(evaluationMethod)?.updatePoints(pointsToAdd, userGameSession) ?? pointsToAdd;
+      await this.userGameSessionRepo.update(userGameSession);
 
     return userGameSession;
   }
